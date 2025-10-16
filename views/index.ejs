@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Business QR App</title>
+    <link rel="stylesheet" href="/public/css/style.css?v=<%= Date.now() %>"/>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Business QR Manager</h1>
+        <form method="post" action="/admin/regen-all">
+          <button class="secondary" type="submit">Regenerate All QRs</button>
+        </form>
+      </div>
+
+      <div class="grid" style="grid-template-columns: 2fr 1.2fr;">
+        <div class="card">
+          <h2>Create a business</h2>
+          <form method="post" action="/business">
+            <div class="row">
+              <div>
+                <label>Business name</label>
+                <input type="text" name="name" required />
+              </div>
+              <div>
+                <label>Custom slug (optional)</label>
+                <input type="text" name="slug" placeholder="auto from name" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Logo URL (optional)</label>
+                <input type="url" name="logoUrl" placeholder="https://..." />
+              </div>
+              <div>
+                <label>Poster Background Color - Business Theme Color</label>
+                <input type="color" name="brandColor" value="#FFD21E"/>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Public Title</label>
+                <input type="text" name="publicTitle" placeholder="Follow & Say Hi!"/>
+              </div>
+              <div>
+                <label>Public Subtitle (small line)</label>
+                <input type="text" name="publicSubtitle" placeholder="Comment, share, or show your post for a perk!"/>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Main CTA Text</label>
+                <input type="text" name="ctaText" placeholder="GET A FREE DRINK!"/>
+              </div>
+              <div>
+                <label>Footer / Fine Print</label>
+                <!-- fixed stray `%>` -->
+                <input type="text" name="publicFooter" placeholder="Powered By BlipNGo" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>QR Layout</label>
+                <select name="qrLayout">
+                  <!-- fixed `selected"` typo -->
+                  <option value="horizontal" selected>Horizontal (A / AA / AAA)</option>
+                  <option value="vertical">Vertical (stacked)</option>
+                </select>
+              </div>
+              <div>
+                <label>CTA Background Color</label>
+                <input type="color" name="ctaBgColor" value="#0A0A0A"/>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Instagram target URL</label>
+                <input type="url" name="instagramUrl" placeholder="https://www.instagram.com/p/..." />
+              </div>
+              <div>
+                <label>TikTok target URL</label>
+                <input type="url" name="tiktokUrl" placeholder="https://www.tiktok.com/..." />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>YouTube target URL</label>
+                <input type="url" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..."/>
+              </div>
+              <div>
+                <!-- NEW: Google Reviews Write-a-Review link -->
+                <label>Google Reviews (Write a review) URL</label>
+                <input
+                  type="url"
+                  name="googleReviewUrl"
+                  placeholder="https://search.google.com/local/writereview?placeid=XXXXXXXXXXXX"
+                />
+                <small class="muted">Tip: use Google’s Place ID “Write a review” link for best UX.</small>
+              </div>
+            </div>
+
+            <div class="row" style="align-items:flex-end;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <label>Show Logo</label>
+                <input type="checkbox" name="showLogo" checked />
+              </div>
+              <div style="display:flex; align-items:flex-end; justify-content:flex-end; gap:8px;">
+                <button type="submit" style="margin-left:auto;">Create</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>How it works</h2>
+          <ol class="small">
+            <li>Set <code>BASE_URL</code> in <code>.env</code> to your LAN IP or tunnel URL.</li>
+            <li>Create a business with links &amp; theme color.</li>
+            <li>QRs encode stable URLs like <code>/r/&lt;slug&gt;/instagram</code>, <code>/r/&lt;slug&gt;/tiktok</code>, <code>/r/&lt;slug&gt;/youtube</code>, <code>/r/&lt;slug&gt;/google</code> (images at <code>/qr/&lt;slug&gt;/{platform}.png</code>).</li>
+            <li>Print the poster page: <code>/p/&lt;slug&gt;</code> (or <code>?print=1</code> / <code>?kiosk=1</code>).</li>
+            <li>Update weekly post links anytime; QRs stay the same.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Businesses</h2>
+        <table>
+          <thead><tr><th>Name</th><th>Slug</th><th>Poster</th><th>Admin</th></tr></thead>
+          <tbody>
+            <% if (businesses.length === 0) { %>
+              <tr><td colspan="4" class="small">No businesses yet. Create one above.</td></tr>
+            <% } %>
+            <% businesses.forEach(b => { %>
+              <tr>
+                <td><%= b.name %></td>
+                <td><code><%= b.slug %></code></td>
+                <td><a href="/p/<%= b.slug %>" target="_blank">View</a></td>
+                <td><a href="/business/<%= b.slug %>">Manage</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer">© <script>document.write(new Date().getFullYear())</script> Business QR App</div>
+    </div>
+  </body>
+</html>

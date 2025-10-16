@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= biz.publicTitle || (biz.name + ' — Poster') %></title>
+  <style>
+    :root {
+      --bg: <%= biz.brandColor ? biz.brandColor : '#FFD21E' %>;
+      --ink: #0A0A0A;
+      --paper: #FFFBEA;
+      --muted: #646464;
+      --accent: #262626;
+      --logo-bg: <%= biz.logoBgColor ? biz.logoBgColor : '#0A0A0A' %>;
+      --cta-color: <%= biz.ctaColor ? biz.ctaColor : '#EDC400' %>;
+      --cta-bg-color: <%= biz.ctaBgColor ? biz.ctaBgColor : '#0A0A0A' %>;
+    }
+    
+    /* ---------- BASE / SCREEN ---------- */
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .page {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .poster {
+      width: 100%;
+      max-width: 820px;
+      margin: auto;
+      background: var(--paper);
+      border-radius: 28px;
+      box-sizing: border-box;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+      padding: 32px 28px;
+    }
+
+    .header { text-align: center; margin-bottom: 24px; }
+    .logo {
+      width: 120px; height: 120px; margin: 0 auto 10px;
+      border: 4px solid var(--ink); border-radius: 20px;
+      display: grid; place-items: center; overflow: hidden; background: var(--logo-bg);
+    }
+    .logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; background: var(--logo-bg); }
+    .bizname { margin: 0; font-weight: 800; font-size: clamp(28px, 4.6vw, 44px); }
+    .tagline {
+      margin: 4px 0 0; font-weight: 600; font-size: clamp(14px, 2.2vw, 18px); color: var(--muted);
+    }
+    .cta {
+      margin: 10px auto 20px; padding: 12px 20px;
+      background: var(--cta-bg-color); color: var(--cta-color);
+      border-radius: 12px; font-weight: 900; font-size: clamp(22px, 3.8vw, 34px);
+      text-align: center; max-width: 450px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+    }
+
+    .steps {
+      list-style: none; padding: 0; margin: 0 auto 18px; max-width: 640px;
+      font-size: clamp(15px, 2.4vw, 18px); font-weight: 700; display: grid; gap: 8px;
+    }
+    .steps li { display: grid; grid-template-columns: 30px 1fr; align-items: center; gap: 10px; }
+    .steps .num {
+      width: 30px; height: 30px; border: 3px solid var(--ink); background: var(--paper);
+      border-radius: 10px; display: grid; place-items: center; font-weight: 900;
+    }
+
+    /* ---------- QR GRID (VARIABLES) ---------- */
+    .qr-grid {
+      --card-w: 240px;
+      --qr-h: 220px;
+      --gap: 22px;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap); margin-top: 8px;
+    }
+    .qr-grid.qr-1 { --card-w: 380px; --qr-h: 330px; --gap: 24px; }
+    .qr-grid.qr-2 { --card-w: 320px; --qr-h: 285px; --gap: 26px; }
+    .qr-grid.qr-3 { --card-w: 240px; --qr-h: 220px; --gap: 22px; }
+    .qr-grid.qr-4 { --card-w: 220px; --qr-h: 200px; --gap: 18px; } /* NEW */
+
+    .qr-card {
+      background: var(--bg); border: 4px solid var(--ink); border-radius: 18px;
+      padding: 14px; width: var(--card-w); box-sizing: border-box; overflow: hidden;
+      display: grid; gap: 10px; page-break-inside: avoid;
+    }
+    .qr-head { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 900; }
+    .qr-ico {
+      width: 26px; height: 26px; border: 2px solid var(--ink); border-radius: 8px;
+      background: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 900;
+    }
+    .qr-title { font-size: 14px; text-transform: uppercase; }
+
+    .qr-img {
+      width: 100%; height: var(--qr-h); background: #fff; border: 3px solid var(--ink);
+      border-radius: 12px; display: grid; place-items: center; overflow: hidden; box-sizing: border-box;
+    }
+    .qr-img img {
+      width: 94%; height: 94%; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges;
+      max-width: 94%; max-height: 94%;
+    }
+
+    .fineprint {
+      margin-top: 14px; text-align: center; font-size: 12px; color: var(--muted); font-weight: 600;
+    }
+
+    /* ---------- PRINT (A4/Letter) ---------- */
+    @media print {
+      @page { margin: 0; }
+      html, body { height: auto; }
+      body {
+        background: #fff !important; color: #000 !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .poster {
+        width: 186mm; height: 273mm; margin: 12mm auto; padding: 8mm;
+        border-width: 3px; box-sizing: border-box;
+      }
+      .logo { width: 30mm; height: 30mm; border-width: 2px; border-radius: 6mm; margin-bottom: 4mm; }
+      .bizname { font-size: 24pt; margin: 0 0 2mm; }
+      .cta { font-size: 18pt; padding: 5mm 8mm; margin: 4mm auto 8mm; max-width: 140mm; }
+      .steps { font-size: 11.2pt; gap: 3mm; margin: 0 0 7mm; }
+      .steps .num { width: 18px; height: 18px; border-width: 2px; font-size: 10pt; }
+      .qr-grid { gap: 8mm; row-gap: 8mm; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
+      .qr-grid.qr-1 { --card-w: 80mm; --qr-h: 62mm; }
+      .qr-grid.qr-2 { --card-w: 68mm; --qr-h: 54mm; }
+      .qr-grid.qr-3 { --card-w: 50mm; --qr-h: 44mm; }
+      .qr-grid.qr-4 { --card-w: 44mm; --qr-h: 40mm; } /* NEW */
+      .qr-card { width: var(--card-w); padding: 4.5mm; border-width: 2px; border-radius: 5mm; }
+      .qr-head { font-size: 11pt; }
+      .qr-ico { width: 9mm; height: 9mm; font-size: 9pt; border-width: 1.6px; border-radius: 2.5mm; }
+      .qr-title { font-size: 10.5pt; }
+      .qr-img { height: var(--qr-h); border-width: 2px; border-radius: 3mm; }
+      .qr-img img {
+        max-width: 92% !important; max-height: 92% !important;
+        width: auto; height: auto; object-fit: contain !important;
+      }
+      .fineprint { font-size: 9.5pt; margin-top: 6mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <main class="poster" id="poster">
+      <div class="header">
+        <div class="logo">
+          <% if (biz.showLogo && biz.logoUrl) { %>
+            <img src="<%= biz.logoUrl %>" alt="<%= biz.name %> logo" />
+          <% } else { %>
+            <div><%= (biz.name || 'Your Logo').split(' ').slice(0,2).join('<br>') %></div>
+          <% } %>
+        </div>
+        <h1 class="bizname"><%= biz.name %></h1>
+        <% if (biz.publicSubtitle && biz.publicSubtitle.trim().length) { %>
+          <p class="tagline"><%= biz.publicSubtitle %></p>
+        <% } %>
+      </div>
+
+      <h2 class="cta"><%= biz.ctaText || 'Every Scan Wins — Some Unlock a Golden Ticket 🎟️' %></h2>
+
+      <ol class="steps">
+        <% if (biz.steps && biz.steps.length) {
+             biz.steps.sort((a,b)=>a.order-b.order).forEach((s,i)=>{ %>
+          <li><span class="num"><%= i+1 %></span><span><%= s.text %></span></li>
+        <% }) } else { %>
+          <li><span class="num">1</span><span>Scan any of the QR Codes below.</span></li>
+          <li><span class="num">2</span><span>Engage with the content to unlock your reward.</span></li>
+          <li><span class="num">3</span><span>Show your screen at the counter to redeem your discount.</span></li>
+        <% } %>
+      </ol>
+
+      <%
+        const cards = [];
+        if (biz.tiktokUrl) cards.push('tiktok');
+        if (biz.instagramUrl) cards.push('instagram');
+        if (biz.youtubeUrl) cards.push('youtube');
+        if (biz.googleReviewUrl) cards.push('google'); // NEW
+        const qCount = cards.length || 0;
+      %>
+
+      <section class="qr-grid qr-<%= qCount %>">
+        <% if (biz.tiktokUrl) { %>
+          <article class="qr-card">
+            <div class="qr-head"><div class="qr-ico">♪</div><div class="qr-title">TIKTOK</div></div>
+            <div class="qr-img"><img alt="TikTok QR" src="/qr/<%= biz.slug %>/tiktok.png" /></div>
+          </article>
+        <% } %>
+
+        <% if (biz.instagramUrl) { %>
+          <article class="qr-card">
+            <div class="qr-head"><div class="qr-ico">IG</div><div class="qr-title">INSTAGRAM</div></div>
+            <div class="qr-img"><img alt="Instagram QR" src="/qr/<%= biz.slug %>/instagram.png" /></div>
+          </article>
+        <% } %>
+
+        <% if (biz.youtubeUrl) { %>
+          <article class="qr-card">
+            <div class="qr-head"><div class="qr-ico">▶</div><div class="qr-title">YOUTUBE SHORTS</div></div>
+            <div class="qr-img"><img alt="YouTube QR" src="/qr/<%= biz.slug %>/youtube.png" /></div>
+          </article>
+        <% } %>
+
+        <% if (biz.googleReviewUrl) { %>
+          <article class="qr-card">
+            <div class="qr-head"><div class="qr-ico">★</div><div class="qr-title">GOOGLE REVIEWS</div></div>
+            <div class="qr-img"><img alt="Google Reviews QR" src="/qr/<%= biz.slug %>/google.png" /></div>
+          </article>
+        <% } %>
+      </section>
+
+      <p class="fineprint">
+        <%= (biz.publicFooter && biz.publicFooter.trim().length)
+              ? biz.publicFooter
+              : 'Powered by BlipNgo' %>
+      </p>
+    </main>
+  </div>
+</body>
+</html>
