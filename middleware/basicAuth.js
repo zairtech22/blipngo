@@ -2,7 +2,9 @@
 const auth = require('basic-auth');
 
 module.exports = (req, res, next) => {
-  console.log('[basicAuth] path:', req.path); // <-- debug
+  // Optional debug: uncomment if you want to see hits in logs
+  // console.log('[basicAuth] path:', req.path);
+
   const creds = auth(req);
   const user = process.env.ADMIN_USER;
   const pass = process.env.ADMIN_PASS;
