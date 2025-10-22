@@ -7,7 +7,7 @@ require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 
 // --- auth middleware (expects middleware/basicAuth.js) ---
-const basicAuth = require('./middleware/basicAuth');
+const basicAuth = require('middleware/basicAuth.js');
 
 // --- init ---
 const prisma = new PrismaClient();
