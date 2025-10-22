@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const QRCode = require('qrcode');
 require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
+const basicAuth = require('./middleware/basicauth');
+
 
 // --- init ---
 const prisma = new PrismaClient();
@@ -54,10 +56,15 @@ const nz = (s) => {
 // ---------------- ROUTES ----------------
 
 // Home (list businesses)
-app.get('/', async (req, res) => {
+// Home (list businesses) — ADMIN ONLY
+app.get('/', basicAuth, async (req, res) => {
   const businesses = await prisma.business.findMany({ orderBy: { createdAt: 'desc' } });
   res.render('index', { businesses, BASE_URL });
 });
+// app.get('/', async (req, res) => {
+//   const businesses = await prisma.business.findMany({ orderBy: { createdAt: 'desc' } });
+//   res.render('index', { businesses, BASE_URL });
+// });
 
 // Create business
 app.post('/business', async (req, res) => {
@@ -115,7 +122,7 @@ app.post('/business', async (req, res) => {
 });
 
 // Admin: manage business page
-app.get('/business/:slug', async (req, res) => {
+app.get('/business/:slug', basicAuth ,async (req, res) => {
   const biz = await prisma.business.findUnique({
     where: { slug: req.params.slug },
     include: { steps: true }
