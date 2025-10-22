@@ -6,6 +6,9 @@ const QRCode = require('qrcode');
 require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 
+// --- auth middleware (expects middleware/basicAuth.js) ---
+const basicAuth = require('./middleware/basicAuth');
+
 // --- init ---
 const prisma = new PrismaClient();
 const app = express();
@@ -31,10 +34,7 @@ const PLATFORM_LIST = Object.keys(SUPPORTED_PLATFORMS);
 
 // ---- helpers for form parsing ----
 const isOn = (v) => {
-  if (Array.isArray(v)) {
-    // if any value in the array indicates "on", treat it as on
-    return v.some((x) => isOn(x));
-  }
+  if (Array.isArray(v)) return v.some((x) => isOn(x));
   if (v === true || v === 1) return true;
   if (typeof v === 'string') {
     const s = v.toLowerCase();
@@ -50,17 +50,16 @@ const nz = (s) => {
   return v.length ? v : null;
 };
 
-
 // ---------------- ROUTES ----------------
 
-// Home (list businesses)
-app.get('/', async (req, res) => {
+// Home (list businesses) — ADMIN ONLY
+app.get('/', basicAuth, async (req, res) => {
   const businesses = await prisma.business.findMany({ orderBy: { createdAt: 'desc' } });
   res.render('index', { businesses, BASE_URL });
 });
 
-// Create business
-app.post('/business', async (req, res) => {
+// Create business — ADMIN ONLY
+app.post('/business', basicAuth, async (req, res) => {
   try {
     const {
       name,
@@ -114,8 +113,8 @@ app.post('/business', async (req, res) => {
   }
 });
 
-// Admin: manage business page
-app.get('/business/:slug', async (req, res) => {
+// Admin: manage business page — ADMIN ONLY
+app.get('/business/:slug', basicAuth, async (req, res) => {
   const biz = await prisma.business.findUnique({
     where: { slug: req.params.slug },
     include: { steps: true }
@@ -124,8 +123,8 @@ app.get('/business/:slug', async (req, res) => {
   res.render('business', { biz, BASE_URL });
 });
 
-// Update any single platform URL (and log redirect history)
-app.post('/business/:slug/update', async (req, res) => {
+// Update any single platform URL (and log redirect history) — ADMIN ONLY
+app.post('/business/:slug/update', basicAuth, async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
 
@@ -147,8 +146,8 @@ app.post('/business/:slug/update', async (req, res) => {
   res.redirect(`/business/${biz.slug}`);
 });
 
-// Save theme / CTA / steps
-app.post('/business/:slug/theme', async (req, res) => {
+// Save theme / CTA / steps — ADMIN ONLY
+app.post('/business/:slug/theme', basicAuth, async (req, res) => {
   try {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
     if (!biz) return res.status(404).send('Not found');
@@ -192,7 +191,7 @@ app.post('/business/:slug/theme', async (req, res) => {
         publicSubtitle: nz(publicSubtitle),
         publicFooter: nz(publicFooter),
         ctaText: nz(ctaText),
-        showLogo: !!showLogo, // checkbox 'on' or undefined is fine here
+        showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
         logoUrl: nz(logoUrl),
 
@@ -222,9 +221,8 @@ app.post('/business/:slug/theme', async (req, res) => {
   }
 });
 
-
-// Toggle platform enable/disable (kept for compatibility)
-app.post('/business/:slug/toggle', async (req, res) => {
+// Toggle platform enable/disable — ADMIN ONLY
+app.post('/business/:slug/toggle', basicAuth, async (req, res) => {
   try {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
     if (!biz) return res.status(404).send('Not found');
@@ -257,8 +255,8 @@ app.post('/business/:slug/toggle', async (req, res) => {
   }
 });
 
-// Delete business
-app.post('/business/:slug/delete', async (req, res) => {
+// Delete business — ADMIN ONLY
+app.post('/business/:slug/delete', basicAuth, async (req, res) => {
   try {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
     if (!biz) return res.status(404).send('Not found');
@@ -277,7 +275,7 @@ app.post('/business/:slug/delete', async (req, res) => {
 
 // ---------- POSTER VIEWS (single EJS with isPublic flag) ----------
 
-// Admin preview (toolbar, A4/Letter toggle)
+// Admin preview (toolbar, A4/Letter toggle) — leave public or protect if desired
 app.get('/poster/:slug', async (req, res) => {
   const biz = await prisma.business.findUnique({
     where: { slug: req.params.slug },
@@ -299,7 +297,7 @@ app.get('/p/:slug', async (req, res) => {
 
 // ---------- Redirect + Analytics + QR ----------
 
-// Redirect: QR target (and log scan)
+// Redirect: QR target (and log scan) — PUBLIC
 app.get('/r/:slug/:platform', async (req, res) => {
   const plat = (req.params.platform || '').toLowerCase();
   if (!PLATFORM_LIST.includes(plat)) return res.status(400).send('Invalid platform');
@@ -324,8 +322,8 @@ app.get('/r/:slug/:platform', async (req, res) => {
   res.redirect(target);
 });
 
-// Analytics JSON (counts per platform)
-app.get('/business/:slug/analytics.json', async (req, res) => {
+// Analytics JSON — ADMIN ONLY (avoid leaking internal stats)
+app.get('/business/:slug/analytics.json', basicAuth, async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).json({ error: 'Not found' });
   const rows = await prisma.scanEvent.groupBy({
@@ -336,7 +334,7 @@ app.get('/business/:slug/analytics.json', async (req, res) => {
   res.json({ business: biz.slug, counts: rows.map(r => ({ platform: r.platform, count: r._count._all })) });
 });
 
-// Dynamic QR images (stable, cached)
+// Dynamic QR images (stable, cached) — PUBLIC
 const QR_OPTS = { errorCorrectionLevel: 'M', margin: 2, width: 800 };
 app.get('/qr/:slug/:platform.png', async (req, res) => {
   const { slug, platform } = req.params;
