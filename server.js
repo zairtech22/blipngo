@@ -32,65 +32,6 @@ const SUPPORTED_PLATFORMS = {
 };
 const PLATFORM_LIST = Object.keys(SUPPORTED_PLATFORMS);
 
-// Helper: normalize incoming platform query (e.g. `instagram`) to enum string
-const asPosterPlatform = (plat) => {
-  if (!plat) return 'ALL';
-  const p = String(plat).toLowerCase();
-  switch (p) {
-    case 'instagram': return 'INSTAGRAM';
-    case 'tiktok': return 'TIKTOK';
-    case 'youtube': return 'YOUTUBE';
-    case 'google': return 'GOOGLE';
-    case 'all': return 'ALL';
-    default: return 'ALL';
-  }
-};
-
-// Build a display object merging business-level defaults with an optional
-// poster override (poster fields win when set).
-const buildDisplayFrom = (biz, poster) => {
-  // shallow copy of biz fields we use in templates
-  const base = {
-    id: biz.id,
-    name: biz.name,
-    slug: biz.slug,
-    logoUrl: biz.logoUrl,
-    brandColor: biz.brandColor,
-    logoBgColor: biz.logoBgColor,
-    ctaColor: biz.ctaColor,
-    ctaBgColor: biz.ctaBgColor,
-    publicTitle: biz.publicTitle,
-    publicSubtitle: biz.publicSubtitle,
-    publicFooter: biz.publicFooter,
-    ctaText: biz.ctaText,
-    showLogo: biz.showLogo,
-    instagramUrl: biz.instagramUrl,
-    tiktokUrl: biz.tiktokUrl,
-    youtubeUrl: biz.youtubeUrl,
-    googleReviewUrl: biz.googleReviewUrl,
-    qrLayout: biz.qrLayout,
-    steps: biz.steps || []
-  };
-
-  if (!poster) return base;
-
-  // apply overrides only when not null/undefined
-  const pick = (k) => (poster[k] !== null && poster[k] !== undefined) ? poster[k] : base[k];
-
-  return {
-    ...base,
-    brandColor: pick('brandColor'),
-    logoBgColor: pick('logoBgColor'),
-    ctaColor: pick('ctaColor'),
-    ctaBgColor: pick('ctaBgColor'),
-    publicTitle: pick('publicTitle'),
-    publicSubtitle: pick('publicSubtitle'),
-    publicFooter: pick('publicFooter'),
-    ctaText: pick('ctaText'),
-    showLogo: poster.showLogo === null || poster.showLogo === undefined ? base.showLogo : !!poster.showLogo
-  };
-};
-
 // ---- helpers for form parsing ----
 const isOn = (v) => {
   if (Array.isArray(v)) return v.some((x) => isOn(x));
@@ -179,9 +120,7 @@ app.get('/business/:slug', basicAuth, async (req, res) => {
     include: { steps: true }
   });
   if (!biz) return res.status(404).send('Not found');
-  // fetch posters for this business (admin list)
-  const posters = await prisma.poster.findMany({ where: { businessId: biz.id }, orderBy: { createdAt: 'desc' } });
-  res.render('business', { biz, posters, BASE_URL });
+  res.render('business', { biz, BASE_URL });
 });
 
 // Update any single platform URL (and log redirect history) — ADMIN ONLY
@@ -316,92 +255,6 @@ app.post('/business/:slug/toggle', basicAuth, async (req, res) => {
   }
 });
 
-// Create a poster (platform-specific or ALL) — ADMIN ONLY
-app.post('/business/:slug/poster', basicAuth, async (req, res) => {
-  try {
-    const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
-    if (!biz) return res.status(404).send('Not found');
-
-    const {
-      platform,
-      brandColor, logoBgColor, ctaColor, ctaBgColor,
-      publicTitle, publicSubtitle, publicFooter, ctaText, showLogo
-    } = req.body;
-
-    const pEnum = asPosterPlatform(platform);
-
-    await prisma.poster.create({
-      data: {
-        businessId: biz.id,
-        platform: pEnum,
-        brandColor: nz(brandColor),
-        logoBgColor: nz(logoBgColor),
-        ctaColor: nz(ctaColor),
-        ctaBgColor: nz(ctaBgColor),
-        publicTitle: nz(publicTitle),
-        publicSubtitle: nz(publicSubtitle),
-        publicFooter: nz(publicFooter),
-        ctaText: nz(ctaText),
-        showLogo: (showLogo === 'on' || showLogo === '1' || showLogo === 'true') ? true : null
-      }
-    });
-
-    res.redirect(`/business/${biz.slug}`);
-  } catch (e) {
-    console.error(e);
-    res.status(500).send('Create poster failed: ' + (e?.message || e));
-  }
-});
-
-// Update poster — ADMIN ONLY
-app.post('/business/:slug/poster/:id/update', basicAuth, async (req, res) => {
-  try {
-    const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
-    if (!biz) return res.status(404).send('Not found');
-
-    const posterId = req.params.id;
-    const {
-      brandColor, logoBgColor, ctaColor, ctaBgColor,
-      publicTitle, publicSubtitle, publicFooter, ctaText, showLogo
-    } = req.body;
-
-    await prisma.poster.update({
-      where: { id: posterId },
-      data: {
-        brandColor: nz(brandColor),
-        logoBgColor: nz(logoBgColor),
-        ctaColor: nz(ctaColor),
-        ctaBgColor: nz(ctaBgColor),
-        publicTitle: nz(publicTitle),
-        publicSubtitle: nz(publicSubtitle),
-        publicFooter: nz(publicFooter),
-        ctaText: nz(ctaText),
-        showLogo: (showLogo === 'on' || showLogo === '1' || showLogo === 'true') ? true : null
-      }
-    });
-
-    res.redirect(`/business/${biz.slug}`);
-  } catch (e) {
-    console.error(e);
-    res.status(500).send('Update poster failed: ' + (e?.message || e));
-  }
-});
-
-// Delete poster — ADMIN ONLY
-app.post('/business/:slug/poster/:id/delete', basicAuth, async (req, res) => {
-  try {
-    const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
-    if (!biz) return res.status(404).send('Not found');
-
-    const posterId = req.params.id;
-    await prisma.poster.delete({ where: { id: posterId } });
-    res.redirect(`/business/${biz.slug}`);
-  } catch (e) {
-    console.error(e);
-    res.status(500).send('Delete poster failed: ' + (e?.message || e));
-  }
-});
-
 // Delete business — ADMIN ONLY
 app.post('/business/:slug/delete', basicAuth, async (req, res) => {
   try {
@@ -424,34 +277,22 @@ app.post('/business/:slug/delete', basicAuth, async (req, res) => {
 
 // Admin preview (toolbar, A4/Letter toggle) — leave public or protect if desired
 app.get('/poster/:slug', async (req, res) => {
-  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug }, include: { steps: true } });
+  const biz = await prisma.business.findUnique({
+    where: { slug: req.params.slug },
+    include: { steps: true }
+  });
   if (!biz) return res.status(404).send('Not found');
-
-  // optional ?platform=instagram to preview a platform-specific poster
-  const requested = asPosterPlatform(req.query.platform);
-  // try platform-specific then ALL
-  let poster = await prisma.poster.findFirst({ where: { businessId: biz.id, platform: requested } });
-  if (!poster && requested !== 'ALL') {
-    poster = await prisma.poster.findFirst({ where: { businessId: biz.id, platform: 'ALL' } });
-  }
-
-  const display = buildDisplayFrom(biz, poster);
-  res.render('poster', { biz: display, isPublic: false });
+  res.render('poster', { biz, isPublic: false });
 });
 
 // Public flyer (no toolbar, defaults to A4)
 app.get('/p/:slug', async (req, res) => {
-  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug }, include: { steps: true } });
+  const biz = await prisma.business.findUnique({
+    where: { slug: req.params.slug },
+    include: { steps: true }
+  });
   if (!biz) return res.status(404).send('Not found');
-
-  const requested = asPosterPlatform(req.query.platform);
-  let poster = await prisma.poster.findFirst({ where: { businessId: biz.id, platform: requested } });
-  if (!poster && requested !== 'ALL') {
-    poster = await prisma.poster.findFirst({ where: { businessId: biz.id, platform: 'ALL' } });
-  }
-
-  const display = buildDisplayFrom(biz, poster);
-  res.render('poster', { biz: display, isPublic: true });
+  res.render('poster', { biz, isPublic: true });
 });
 
 // ---------- Redirect + Analytics + QR ----------
