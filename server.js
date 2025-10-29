@@ -22,26 +22,14 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Helper: single source of truth for supported platforms
-// keys: lowercase route keys; values: DB column suffix before "Url"
+// Helper: supported platforms (DB column suffixes before "Url")
 const SUPPORTED_PLATFORMS = {
   instagram: 'instagram',
   tiktok: 'tiktok',
   youtube: 'youtube',
-  google: 'googleReview',
+  google: 'googleReview', // kept for redirects/history; not shown on social poster
 };
 const PLATFORM_LIST = Object.keys(SUPPORTED_PLATFORMS);
-
-// ---- helpers for form parsing ----
-const isOn = (v) => {
-  if (Array.isArray(v)) return v.some((x) => isOn(x));
-  if (v === true || v === 1) return true;
-  if (typeof v === 'string') {
-    const s = v.toLowerCase();
-    return s === '1' || s === 'on' || s === 'true';
-  }
-  return false;
-};
 
 const nz = (s) => {
   if (s === undefined || s === null) return null;
@@ -70,34 +58,41 @@ app.post('/business', basicAuth, async (req, res) => {
       ctaLabel, ctaText,
       instagramUrl, tiktokUrl, youtubeUrl, googleReviewUrl,
       showLogo, qrLayout, steps,
-      ctaBgColor
+      ctaBgColor, ctaColor, logoBgColor,
     } = req.body;
+
+    if (!name || !String(name).trim()) return res.status(400).send('Name required');
 
     const slug = (customSlug && customSlug.trim().length)
       ? customSlug.trim().toLowerCase()
-      : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      : String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
     const biz = await prisma.business.create({
       data: {
-        name, slug, logoUrl: nz(logoUrl),
+        name: String(name).trim(),
+        slug,
+        logoUrl: nz(logoUrl),
         brandColor: nz(brandColor),
         publicTitle: nz(publicTitle),
         publicSubtitle: nz(publicSubtitle),
         publicFooter: nz(publicFooter),
-        ctaLabel: nz(ctaLabel),
+        ctaLabel: nz(ctaLabel) || 'left',
         ctaText: nz(ctaText),
         instagramUrl: nz(instagramUrl),
         tiktokUrl: nz(tiktokUrl),
         youtubeUrl: nz(youtubeUrl),
-        googleReviewUrl: nz(googleReviewUrl),
+        googleReviewUrl: nz(googleReviewUrl), // editable later on AI page too
         showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
-        ctaBgColor: nz(ctaBgColor)
+        ctaBgColor: nz(ctaBgColor),
+        ctaColor: nz(ctaColor),
+        logoBgColor: nz(logoBgColor),
       }
     });
 
-    if (steps && steps.trim().length) {
-      const lines = steps.split('\n').map(l => l.trim()).filter(Boolean);
+    // Initial steps (textarea, one per line)
+    if (steps && String(steps).trim().length) {
+      const lines = String(steps).split('\n').map(l => l.trim()).filter(Boolean);
       for (let i = 0; i < lines.length; i++) {
         await prisma.step.create({
           data: { businessId: biz.id, order: i + 1, text: lines[i] }
@@ -120,6 +115,76 @@ app.get('/business/:slug', basicAuth, async (req, res) => {
   });
   if (!biz) return res.status(404).send('Not found');
   res.render('business', { biz, BASE_URL });
+});
+
+// Save theme / CTA / steps — ADMIN ONLY (Option A: forgiving save)
+app.post('/business/:slug/theme', basicAuth, async (req, res) => {
+  try {
+    const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+    if (!biz) return res.status(404).send('Not found');
+
+    const {
+      name,
+      ctaLabel,
+      logoBgColor,
+      ctaColor,
+      ctaBgColor,
+      brandColor, publicTitle, publicSubtitle, publicFooter,
+      ctaText, showLogo, qrLayout,
+      logoUrl,
+      instagramUrl, tiktokUrl, youtubeUrl, // no enable* flags
+      steps
+    } = req.body;
+
+    const alignOptions = ['left','center','right'];
+    const align = alignOptions.includes((ctaLabel || '').toLowerCase())
+      ? ctaLabel.toLowerCase()
+      : 'left';
+
+    const instagramFinal = instagramUrl && instagramUrl.trim() ? instagramUrl.trim() : null;
+    const tiktokFinal    = tiktokUrl    && tiktokUrl.trim()    ? tiktokUrl.trim()    : null;
+    const youtubeFinal   = youtubeUrl   && youtubeUrl.trim()   ? youtubeUrl.trim()   : null;
+
+    await prisma.business.update({
+      where: { id: biz.id },
+      data: {
+        name: (name && name.trim()) || biz.name,
+        ctaLabel: align,
+        logoBgColor: nz(logoBgColor),
+        ctaColor: nz(ctaColor),
+        ctaBgColor: nz(ctaBgColor),
+        brandColor: nz(brandColor),
+        publicTitle: nz(publicTitle),
+        publicSubtitle: nz(publicSubtitle),
+        publicFooter: nz(publicFooter),
+        ctaText: nz(ctaText),
+        showLogo: !!showLogo,
+        qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
+        logoUrl: nz(logoUrl),
+
+        instagramUrl: instagramFinal,
+        tiktokUrl:    tiktokFinal,
+        youtubeUrl:   youtubeFinal,
+        // googleReviewUrl is managed on the AI page now
+      }
+    });
+
+    // replace steps
+    await prisma.step.deleteMany({ where: { businessId: biz.id } });
+    if (steps && String(steps).trim().length) {
+      const lines = String(steps).split('\n').map(l => l.trim()).filter(Boolean);
+      for (let i = 0; i < lines.length; i++) {
+        await prisma.step.create({
+          data: { businessId: biz.id, order: i + 1, text: lines[i] }
+        });
+      }
+    }
+
+    res.redirect(`/business/${biz.slug}`);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Theme save failed: ' + (e?.message || e));
+  }
 });
 
 // Update any single platform URL (and log redirect history) — ADMIN ONLY
@@ -145,84 +210,13 @@ app.post('/business/:slug/update', basicAuth, async (req, res) => {
   res.redirect(`/business/${biz.slug}`);
 });
 
-// Save theme / CTA / steps — ADMIN ONLY
-app.post('/business/:slug/theme', basicAuth, async (req, res) => {
-  try {
-    const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
-    if (!biz) return res.status(404).send('Not found');
-
-    const {
-      name,
-      ctaLabel,
-      logoBgColor,
-      ctaColor,
-      ctaBgColor,
-      brandColor, publicTitle, publicSubtitle, publicFooter,
-      ctaText, showLogo, qrLayout,
-      logoUrl,
-      instagramUrl, tiktokUrl, youtubeUrl, googleReviewUrl,
-      enableTiktok, enableInstagram, enableYoutube, enableGoogle,
-      steps
-    } = req.body;
-
-    const alignOptions = ['left','center','right'];
-    const align = alignOptions.includes((ctaLabel || '').toLowerCase())
-      ? ctaLabel.toLowerCase()
-      : 'left';
-
-    const tiktokFinal       = isOn(enableTiktok)    ? nz(tiktokUrl)       : null;
-    const instagramFinal    = isOn(enableInstagram) ? nz(instagramUrl)    : null;
-    const youtubeFinal      = isOn(enableYoutube)   ? nz(youtubeUrl)      : null;
-    const googleReviewFinal = isOn(enableGoogle)    ? nz(googleReviewUrl) : null;
-
-    await prisma.business.update({
-      where: { id: biz.id },
-      data: {
-        name: nz(name) || biz.name,
-        ctaLabel: align,
-        logoBgColor: nz(logoBgColor),
-        ctaColor: nz(ctaColor),
-        ctaBgColor: nz(ctaBgColor),
-        brandColor: nz(brandColor),
-        publicTitle: nz(publicTitle),
-        publicSubtitle: nz(publicSubtitle),
-        publicFooter: nz(publicFooter),
-        ctaText: nz(ctaText),
-        showLogo: !!showLogo,
-        qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
-        logoUrl: nz(logoUrl),
-
-        instagramUrl: instagramFinal,
-        tiktokUrl: tiktokFinal,
-        youtubeUrl: youtubeFinal,
-        googleReviewUrl: googleReviewFinal,
-      }
-    });
-
-    await prisma.step.deleteMany({ where: { businessId: biz.id } });
-    if (steps && String(steps).trim().length) {
-      const lines = String(steps).split('\n').map(l => l.trim()).filter(Boolean);
-      for (let i = 0; i < lines.length; i++) {
-        await prisma.step.create({
-          data: { businessId: biz.id, order: i + 1, text: lines[i] }
-        });
-      }
-    }
-
-    res.redirect(`/business/${biz.slug}`);
-  } catch (e) {
-    console.error(e);
-    res.status(500).send('Theme save failed: ' + (e?.message || e));
-  }
-});
-
-// Toggle platform enable/disable — ADMIN ONLY
+// Toggle platform enable/disable — ADMIN ONLY (kept for compatibility)
 app.post('/business/:slug/toggle', basicAuth, async (req, res) => {
   try {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
     if (!biz) return res.status(404).send('Not found');
 
-    const { platform, enabled } = req.body;
+    const { platform, enabled, newUrl } = req.body;
     if (!PLATFORM_LIST.includes(platform)) return res.status(400).send('Invalid platform');
 
     const dbKey = SUPPORTED_PLATFORMS[platform] + 'Url';
@@ -234,7 +228,6 @@ app.post('/business/:slug/toggle', basicAuth, async (req, res) => {
         data: { businessId: biz.id, platform: platform.toUpperCase(), fromUrl: biz[dbKey], toUrl: '' }
       });
     } else {
-      const { newUrl } = req.body;
       const toUrl = nz(newUrl) || biz[dbKey];
       if (!toUrl) return res.status(400).send('Provide a URL to enable this platform.');
       await prisma.business.update({ where: { id: biz.id }, data: { [dbKey]: toUrl } });
@@ -256,10 +249,13 @@ app.post('/business/:slug/delete', basicAuth, async (req, res) => {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
     if (!biz) return res.status(404).send('Not found');
 
-    await prisma.redirectHistory.deleteMany({ where: { businessId: biz.id } });
-    await prisma.scanEvent.deleteMany({ where: { businessId: biz.id } });
-    await prisma.step.deleteMany({ where: { businessId: biz.id } });
-    await prisma.business.delete({ where: { id: biz.id } });
+    await prisma.$transaction([
+      prisma.aiReviewConfig.deleteMany({ where: { businessId: biz.id } }), // <-- delete AI config first
+      prisma.redirectHistory.deleteMany({ where: { businessId: biz.id } }),
+      prisma.scanEvent.deleteMany({ where: { businessId: biz.id } }),
+      prisma.step.deleteMany({ where: { businessId: biz.id } }),
+      prisma.business.delete({ where: { id: biz.id } }),
+    ]);
 
     res.redirect('/');
   } catch (e) {
@@ -268,9 +264,9 @@ app.post('/business/:slug/delete', basicAuth, async (req, res) => {
   }
 });
 
-// ---------- POSTER VIEWS (single EJS with isPublic flag) ----------
+// ---------- POSTER VIEWS ----------
 
-// Admin preview (toolbar, A4/Letter toggle) — leave public or protect if desired
+// Admin preview (toolbar, A4/Letter toggle)
 app.get('/poster/:slug', async (req, res) => {
   const biz = await prisma.business.findUnique({
     where: { slug: req.params.slug },
@@ -290,10 +286,9 @@ app.get('/p/:slug', async (req, res) => {
   res.render('poster', { biz, isPublic: true });
 });
 
+// ---------- AI REVIEW ADMIN + POSTER ----------
 
-// === AI Review: Admin Management Screen ===
-
-// Helper: get or create config
+// Ensure AiReviewConfig exists for a business
 async function ensureAiConfig(bizId) {
   let cfg = await prisma.aiReviewConfig.findUnique({ where: { businessId: bizId } });
   if (!cfg) {
@@ -354,15 +349,15 @@ app.post('/admin/ai/:slug/save', basicAuth, async (req, res) => {
       where: { businessId: biz.id },
       data: {
         platform: (platform || 'google').toLowerCase(),
-        defaultTone: defaultTone || null,
-        defaultLength: defaultLength || null,
-        headline: headline || null,
-        disclaimer: disclaimer || null,
+        defaultTone: nz(defaultTone),
+        defaultLength: nz(defaultLength),
+        headline: nz(headline),
+        disclaimer: nz(disclaimer),
         llmEnabled: !!llmEnabled,
-        llmProvider: llmProvider || null,
-        llmModel: llmModel || null,
-        llmSystem: llmSystem || null,
-        llmTemp: llmTemp ? Number(llmTemp) : null,
+        llmProvider: nz(llmProvider),
+        llmModel: nz(llmModel),
+        llmSystem: nz(llmSystem),
+        llmTemp: (typeof llmTemp !== 'undefined' && llmTemp !== null && String(llmTemp).trim() !== '') ? Number(llmTemp) : null,
       }
     })
   );
@@ -391,8 +386,7 @@ app.post('/admin/ai/:slug/save', basicAuth, async (req, res) => {
   res.redirect(`/admin/ai/${biz.slug}`);
 });
 
-
-// === AI Review: Public helper form ===
+// AI Review helper form (public)
 app.get('/ai-review/:slug', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Business not found');
@@ -400,7 +394,6 @@ app.get('/ai-review/:slug', async (req, res) => {
   const cfg = await prisma.aiReviewConfig.findUnique({ where: { businessId: biz.id } });
   const platform = String(req.query.platform || cfg?.platform || 'google').toLowerCase();
 
-  // Supported targets (extend later if you add Yelp/Facebook)
   const platformTargets = {
     google: biz.googleReviewUrl || null,
   };
@@ -422,7 +415,7 @@ app.get('/ai-review/:slug', async (req, res) => {
   });
 });
 
-// === AI Review: Generate a draft (templated; swap to LLM later if you want) ===
+// AI Review: Generate a draft (templated for now)
 app.post('/ai-review/:slug/generate', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).json({ error: 'Business not found' });
@@ -455,7 +448,7 @@ app.post('/ai-review/:slug/generate', async (req, res) => {
   res.json({ draft });
 });
 
-// === AI Review Poster (single-platform, public) ===
+// AI Review Poster (public)
 app.get('/ai-poster/:slug/:platform', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
@@ -464,7 +457,9 @@ app.get('/ai-poster/:slug/:platform', async (req, res) => {
   res.render('poster_ai_review', { biz, platform, BASE_URL, headline: cfg?.headline });
 });
 
-// === First-party QR PNG for the AI poster ===
+// ---------- Redirect + Analytics + QR ----------
+
+// QR for AI poster
 const QR_OPTS_AI = { errorCorrectionLevel: 'M', margin: 2, width: 800 };
 app.get('/qr/ai/:slug/:platform.png', async (req, res) => {
   const { slug, platform } = req.params;
@@ -483,9 +478,7 @@ app.get('/qr/ai/:slug/:platform.png', async (req, res) => {
   }
 });
 
-// ---------- Redirect + Analytics + QR ----------
-
-// Redirect: QR target (and log scan) — PUBLIC
+// Redirect: QR target (and log scan) — PUBLIC (social & google redirect)
 const QR_OPTS = { errorCorrectionLevel: 'M', margin: 2, width: 800 };
 app.get('/r/:slug/:platform', async (req, res) => {
   const plat = (req.params.platform || '').toLowerCase();
@@ -523,7 +516,7 @@ app.get('/business/:slug/analytics.json', basicAuth, async (req, res) => {
   res.json({ business: biz.slug, counts: rows.map(r => ({ platform: r.platform, count: r._count._all })) });
 });
 
-// Dynamic QR images (stable, cached) — PUBLIC (social poster)
+// QR for social poster
 app.get('/qr/:slug/:platform.png', async (req, res) => {
   const { slug, platform } = req.params;
   if (!PLATFORM_LIST.includes(platform)) return res.status(400).send('Invalid platform');

@@ -47,9 +47,23 @@
     .logo {
       width: 120px; height: 120px; margin: 0 auto 10px;
       border: 4px solid var(--ink); border-radius: 20px;
-      display: grid; place-items: center; overflow: hidden; background: var(--logo-bg);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: var(--logo-bg);
     }
-    .logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; background: var(--logo-bg); }
+    .logo img { 
+      max-width: 85%; 
+      max-height: 85%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    .logo div { 
+      color: var(--paper); 
+      font-weight: 700; 
+      text-align: center; 
+      font-size: 16px;
+      line-height: 1.4;
+    }
     .bizname { margin: 0; font-weight: 800; font-size: clamp(28px, 4.6vw, 44px); }
     .tagline {
       margin: 4px 0 0; font-weight: 600; font-size: clamp(14px, 2.2vw, 18px); color: var(--muted);
@@ -149,10 +163,10 @@
     <main class="poster" id="poster">
       <div class="header">
         <div class="logo">
-          <% if (biz.showLogo && biz.logoUrl) { %>
+          <% if (biz.showLogo && biz.logoUrl && biz.logoUrl.trim()) { %>
             <img src="<%= biz.logoUrl %>" alt="<%= biz.name %> logo" />
           <% } else { %>
-            <div><%= (biz.name || 'Your Logo').split(' ').slice(0,2).join('<br>') %></div>
+            <div><%= (biz.name || 'Your Logo').split(' ').slice(0,2).join(' ') %></div>
           <% } %>
         </div>
         <h1 class="bizname"><%= biz.name %></h1>
@@ -179,7 +193,6 @@
         if (biz.tiktokUrl) cards.push('tiktok');
         if (biz.instagramUrl) cards.push('instagram');
         if (biz.youtubeUrl) cards.push('youtube');
-        if (biz.googleReviewUrl) cards.push('google'); // NEW
         const qCount = cards.length || 0;
       %>
 
@@ -205,12 +218,7 @@
           </article>
         <% } %>
 
-        <% if (biz.googleReviewUrl) { %>
-          <article class="qr-card">
-            <div class="qr-head"><div class="qr-ico">★</div><div class="qr-title">GOOGLE REVIEWS</div></div>
-            <div class="qr-img"><img alt="Google Reviews QR" src="/qr/<%= biz.slug %>/google.png" /></div>
-          </article>
-        <% } %>
+        <!-- Google Reviews QR removed (moved under AI settings) -->
       </section>
 
       <p class="fineprint">
