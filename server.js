@@ -295,6 +295,90 @@ app.get('/p/:slug', async (req, res) => {
   res.render('poster', { biz, isPublic: true });
 });
 
+// === AI Review: Public helper form ===
+app.get('/ai-review/:slug', async (req, res) => {
+  const platform = String(req.query.platform || 'google').toLowerCase();
+  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+  if (!biz) return res.status(404).send('Business not found');
+
+  // Supported targets (extend later if you add Yelp/Facebook)
+  const platformTargets = {
+    google: biz.googleReviewUrl || null,
+  };
+  const targetUrl = platformTargets[platform] || biz.googleReviewUrl || null;
+
+  // lightweight analytics
+  await prisma.scanEvent.create({
+    data: {
+      businessId: biz.id,
+      platform: `AI_REVIEW_${platform.toUpperCase()}`,
+      userAgent: req.headers['user-agent'] || null
+    }
+  });
+
+  res.render('ai_review_form', { biz, platform, targetUrl, BASE_URL });
+});
+
+// === AI Review: Generate a draft (server-side templating; swap to LLM later if you want) ===
+app.post('/ai-review/:slug/generate', async (req, res) => {
+  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+  if (!biz) return res.status(404).json({ error: 'Business not found' });
+
+  const { rating = 5, order = '', highlights = '', tone = 'friendly', length = 'short', extras = '' } = req.body || {};
+
+  const r = Math.max(1, Math.min(5, parseInt(rating, 10) || 5));
+  const stars = '★'.repeat(r);
+  const lenMap = { short: 40, medium: 80, long: 140 };
+  const targetLen = lenMap[length] || 80;
+
+  const bits = [
+    `I had a${r>=4?' fantastic':r>=3?' solid':' mixed'} experience at ${biz.name}.`,
+    order ? `I ordered ${order}.` : '',
+    highlights ? `${highlights}.` : '',
+    extras ? `${extras}.` : '',
+    `Overall: ${stars}/★★★★★.`
+  ].filter(Boolean).join(' ');
+
+  const toned =
+    tone === 'professional'
+      ? bits.replace(/fantastic|solid|mixed/gi, m => ({ fantastic: 'excellent', solid: 'good', mixed: 'adequate' }[m.toLowerCase()] || m))
+      : tone === 'enthusiastic'
+        ? bits + ' Highly recommend!'
+        : bits;
+
+  let draft = toned;
+  if (draft.length > targetLen) draft = draft.slice(0, targetLen).replace(/\s+\S*$/,'') + '…';
+
+  res.json({ draft });
+});
+
+// === AI Review Poster (single-platform, public) ===
+app.get('/ai-poster/:slug/:platform', async (req, res) => {
+  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+  if (!biz) return res.status(404).send('Not found');
+  const platform = String(req.params.platform || 'google').toLowerCase();
+  res.render('poster_ai_review', { biz, platform, BASE_URL });
+});
+
+// === First-party QR PNG for the AI poster (reuses QRCode already in your app) ===
+const QR_OPTS_AI = { errorCorrectionLevel: 'M', margin: 2, width: 800 };
+app.get('/qr/ai/:slug/:platform.png', async (req, res) => {
+  const { slug, platform } = req.params;
+  const biz = await prisma.business.findUnique({ where: { slug } });
+  if (!biz) return res.status(404).send('Not found');
+
+  const urlToEncode = `${BASE_URL}/ai-review/${biz.slug}?platform=${encodeURIComponent(String(platform).toLowerCase())}`;
+  try {
+    const buf = await QRCode.toBuffer(urlToEncode, QR_OPTS_AI);
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(buf);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('QR error');
+  }
+});
+
 // ---------- Redirect + Analytics + QR ----------
 
 // Redirect: QR target (and log scan) — PUBLIC

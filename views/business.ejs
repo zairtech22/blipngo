@@ -51,6 +51,7 @@
     </div>
     <div class="actions">
       <a class="btn" href="/p/<%= biz.slug %>" target="_blank">Public</a>
+      <a class="btn" href="/ai-poster/<%= biz.slug %>/google" target="_blank">AI Poster</a>
       <a class="btn secondary" href="/">All</a>
       <form method="post" action="/business/<%= biz.slug %>/delete" onsubmit="return confirm('Delete this business?')">
         <button class="btn danger" type="submit">Delete</button>

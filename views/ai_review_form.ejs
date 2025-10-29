@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title><%= biz.name %> — Quick Review</title>
+<style>
+  :root{ --ink:#0A0A0A; --muted:#6b7280; --border:#e5e7eb; --brand:<%= biz.brandColor || '#111827' %>; }
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:#f8fafc;color:#111}
+  .wrap{max-width:680px;margin:0 auto;padding:18px}
+  h1{margin:0 0 4px 0;font-size:20px}
+  .muted{color:var(--muted);font-size:13px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px}
+  label{display:block;font-weight:700;margin:8px 0 6px}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
+  textarea{min-height:110px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{display:inline-block;border:2px solid #000;background:#fff;color:#000;padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none;cursor:pointer}
+  .btn:hover{background:#000;color:#fff}
+  .primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .grid{display:grid;gap:10px}
+  .footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Write a quick review</h1>
+  <div class="muted">for <strong><%= biz.name %></strong> — platform: <strong><%= platform %></strong></div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Rating</label>
+        <select id="rating">
+          <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+        </select>
+      </div>
+      <div>
+        <label>Tone</label>
+        <select id="tone">
+          <option value="friendly">Friendly</option>
+          <option value="professional">Professional</option>
+          <option value="enthusiastic">Enthusiastic</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>What did you get?</label>
+        <input id="order" placeholder="e.g., Jerk chicken over spicy rice"/>
+      </div>
+      <div>
+        <label>Length</label>
+        <select id="length">
+          <option value="short">Short (~1–2 lines)</option>
+          <option value="medium">Medium (~3–4 lines)</option>
+          <option value="long">Long (~5–6 lines)</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Highlights (what you liked)</label>
+    <input id="highlights" placeholder="e.g., juicy chicken, friendly staff, fast service"/>
+
+    <label>Anything else?</label>
+    <textarea id="extras" placeholder="Optional: shout out a standout moment, special sauce, etc."></textarea>
+
+    <div class="grid" style="grid-template-columns:1fr auto;align-items:end">
+      <div></div>
+      <button id="genBtn" class="btn primary">Generate review</button>
+    </div>
+  </div>
+
+  <div id="resultCard" class="card" style="display:none">
+    <label>Your draft (edit before copying)</label>
+    <textarea id="draft"></textarea>
+    <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:10px">
+      <button id="copyBtn" class="btn">Copy</button>
+      <% if (targetUrl) { %>
+        <a class="btn" id="openPlatform" href="<%= targetUrl %>" target="_blank" rel="noopener">Open <%= platform %></a>
+      <% } else { %>
+        <button class="btn" disabled>Platform link not set</button>
+      <% } %>
+    </div>
+    <div class="muted" style="margin-top:8px">Paste into <%= platform %>, and feel free to tweak the text first.</div>
+  </div>
+
+  <div class="footer">Thanks for supporting <%= biz.name %> 💛</div>
+</div>
+
+<script>
+  const genBtn = document.getElementById('genBtn');
+  const resultCard = document.getElementById('resultCard');
+  const draftEl = document.getElementById('draft');
+  const copyBtn = document.getElementById('copyBtn');
+
+  genBtn.addEventListener('click', async () => {
+    const payload = {
+      rating: document.getElementById('rating').value,
+      order: document.getElementById('order').value.trim(),
+      highlights: document.getElementById('highlights').value.trim(),
+      tone: document.getElementById('tone').value,
+      length: document.getElementById('length').value,
+      extras: document.getElementById('extras').value.trim()
+    };
+    const res = await fetch(window.location.pathname + '/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    draftEl.value = data.draft || '';
+    resultCard.style.display = 'block';
+    draftEl.focus();
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(draftEl.value);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => copyBtn.textContent = 'Copy', 1200);
+    } catch (e) {
+      alert('Copy failed — select the text and copy.');
+    }
+  });
+</script>
+</body>
+</html>
