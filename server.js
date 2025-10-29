@@ -49,8 +49,8 @@ const asPosterPlatform = (plat) => {
 // Build a display object merging business-level defaults with an optional
 // poster override (poster fields win when set).
 const buildDisplayFrom = (biz, poster) => {
-  // Always include all platform URLs and enabled QRs regardless of poster platform
-  const display = {
+  // shallow copy of biz fields we use in templates
+  const base = {
     id: biz.id,
     name: biz.name,
     slug: biz.slug,
@@ -72,13 +72,13 @@ const buildDisplayFrom = (biz, poster) => {
     steps: biz.steps || []
   };
 
-  if (!poster) return display;
+  if (!poster) return base;
 
   // apply overrides only when not null/undefined
-  const pick = (k) => (poster[k] !== null && poster[k] !== undefined) ? poster[k] : display[k];
+  const pick = (k) => (poster[k] !== null && poster[k] !== undefined) ? poster[k] : base[k];
 
   return {
-    ...display,  // Keep all URLs and QR settings from business
+    ...base,
     brandColor: pick('brandColor'),
     logoBgColor: pick('logoBgColor'),
     ctaColor: pick('ctaColor'),
@@ -87,7 +87,7 @@ const buildDisplayFrom = (biz, poster) => {
     publicSubtitle: pick('publicSubtitle'),
     publicFooter: pick('publicFooter'),
     ctaText: pick('ctaText'),
-    showLogo: poster.showLogo === null || poster.showLogo === undefined ? display.showLogo : !!poster.showLogo
+    showLogo: poster.showLogo === null || poster.showLogo === undefined ? base.showLogo : !!poster.showLogo
   };
 };
 
