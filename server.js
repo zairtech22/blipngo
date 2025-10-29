@@ -273,17 +273,7 @@ app.post('/business/:slug/delete', basicAuth, async (req, res) => {
   }
 });
 
-// ---------- POSTER VIEWS (single EJS with isPublic flag) ----------
-
-// Admin preview (toolbar, A4/Letter toggle) — leave public or protect if desired
-app.get('/poster/:slug', async (req, res) => {
-  const biz = await prisma.business.findUnique({
-    where: { slug: req.params.slug },
-    include: { steps: true }
-  });
-  if (!biz) return res.status(404).send('Not found');
-  res.render('poster', { biz, isPublic: false });
-});
+// ---------- POSTER VIEWS ----------
 
 // Public flyer (no toolbar, defaults to A4)
 app.get('/p/:slug', async (req, res) => {

@@ -50,7 +50,6 @@
       <div class="hint">Edit in the same order the poster shows.</div>
     </div>
     <div class="actions">
-      <a class="btn" href="/poster/<%= biz.slug %>" target="_blank">Open Poster</a>
       <a class="btn" href="/p/<%= biz.slug %>" target="_blank">Public</a>
       <a class="btn secondary" href="/">All</a>
       <form method="post" action="/business/<%= biz.slug %>/delete" onsubmit="return confirm('Delete this business?')">
@@ -200,7 +199,7 @@
           <button class="chip" id="printBtn">Print</button>
         </div>
       </div>
-      <iframe id="posterFrame" src="/poster/<%= biz.slug %>?ts=<%= Date.now() %>" title="Poster Preview"></iframe>
+      <iframe id="posterFrame" src="/p/<%= biz.slug %>?ts=<%= Date.now() %>" title="Poster Preview"></iframe>
     </aside>
   </main>
 
