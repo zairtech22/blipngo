@@ -6,26 +6,35 @@
 <title><%= biz.name %> — Quick Review</title>
 <style>
   :root{ --ink:#0A0A0A; --muted:#6b7280; --border:#e5e7eb; --brand:<%= biz.brandColor || '#111827' %>; }
+  *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:#f8fafc;color:#111}
-  .wrap{max-width:680px;margin:0 auto;padding:18px}
-  h1{margin:0 0 4px 0;font-size:20px}
+  .wrap{max-width:700px;margin:0 auto;padding:18px}
+  h1{margin:0 0 6px 0;font-size:21px}
   .muted{color:var(--muted);font-size:13px}
   .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px}
   label{display:block;font-weight:700;margin:8px 0 6px}
   input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
-  textarea{min-height:110px;resize:vertical}
+  textarea{min-height:120px;resize:vertical}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:640px){ .row{grid-template-columns:1fr} }
   .btn{display:inline-block;border:2px solid #000;background:#fff;color:#000;padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none;cursor:pointer}
   .btn:hover{background:#000;color:#fff}
   .primary{background:var(--brand);border-color:var(--brand);color:#fff}
   .grid{display:grid;gap:10px}
   .footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+  .pill{display:inline-block;padding:6px 10px;border:1px solid #000;border-radius:999px;font-weight:700;margin-right:6px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Write a quick review</h1>
   <div class="muted">for <strong><%= biz.name %></strong> — platform: <strong><%= platform %></strong></div>
+
+  <% if (typeof headline !== 'undefined' && headline) { %>
+    <div class="card" style="background:#0A0A0A;color:<%= biz.ctaColor || '#EDC400' %>;font-weight:800">
+      <div><%= headline %></div>
+    </div>
+  <% } %>
 
   <div class="card">
     <div class="row">
@@ -38,9 +47,9 @@
       <div>
         <label>Tone</label>
         <select id="tone">
-          <option value="friendly">Friendly</option>
-          <option value="professional">Professional</option>
-          <option value="enthusiastic">Enthusiastic</option>
+          <option value="friendly"     <%= (typeof defaultTone!=='undefined' && defaultTone==='friendly') ? 'selected' : '' %>>Friendly</option>
+          <option value="professional" <%= (typeof defaultTone!=='undefined' && defaultTone==='professional') ? 'selected' : '' %>>Professional</option>
+          <option value="enthusiastic" <%= (typeof defaultTone!=='undefined' && defaultTone==='enthusiastic') ? 'selected' : '' %>>Enthusiastic</option>
         </select>
       </div>
     </div>
@@ -53,9 +62,9 @@
       <div>
         <label>Length</label>
         <select id="length">
-          <option value="short">Short (~1–2 lines)</option>
-          <option value="medium">Medium (~3–4 lines)</option>
-          <option value="long">Long (~5–6 lines)</option>
+          <option value="short"  <%= (typeof defaultLength!=='undefined' && defaultLength==='short') ? 'selected' : '' %>>Short (~1–2 lines)</option>
+          <option value="medium" <%= (typeof defaultLength!=='undefined' && defaultLength==='medium') ? 'selected' : '' %>>Medium (~3–4 lines)</option>
+          <option value="long"   <%= (typeof defaultLength!=='undefined' && defaultLength==='long') ? 'selected' : '' %>>Long (~5–6 lines)</option>
         </select>
       </div>
     </div>
@@ -67,13 +76,16 @@
     <textarea id="extras" placeholder="Optional: shout out a standout moment, special sauce, etc."></textarea>
 
     <div class="grid" style="grid-template-columns:1fr auto;align-items:end">
-      <div></div>
+      <div class="muted">Tip: keep it specific and sincere.</div>
       <button id="genBtn" class="btn primary">Generate review</button>
     </div>
   </div>
 
   <div id="resultCard" class="card" style="display:none">
-    <label>Your draft (edit before copying)</label>
+    <div style="margin-bottom:6px">
+      <span class="pill">Draft</span>
+      <span class="muted">Edit before copying</span>
+    </div>
     <textarea id="draft"></textarea>
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:10px">
       <button id="copyBtn" class="btn">Copy</button>
@@ -83,10 +95,14 @@
         <button class="btn" disabled>Platform link not set</button>
       <% } %>
     </div>
-    <div class="muted" style="margin-top:8px">Paste into <%= platform %>, and feel free to tweak the text first.</div>
+    <% if (typeof disclaimer !== 'undefined' && disclaimer) { %>
+      <div class="muted" style="margin-top:8px"><%= disclaimer %></div>
+    <% } else { %>
+      <div class="muted" style="margin-top:8px">Paste into <%= platform %>. Thanks for supporting <%= biz.name %>!</div>
+    <% } %>
   </div>
 
-  <div class="footer">Thanks for supporting <%= biz.name %> 💛</div>
+  <div class="footer">Powered by <strong><%= biz.name %></strong> • <a href="<%= BASE_URL %>" class="muted" style="text-decoration:none">Home</a></div>
 </div>
 
 <script>
@@ -96,32 +112,39 @@
   const copyBtn = document.getElementById('copyBtn');
 
   genBtn.addEventListener('click', async () => {
-    const payload = {
-      rating: document.getElementById('rating').value,
-      order: document.getElementById('order').value.trim(),
-      highlights: document.getElementById('highlights').value.trim(),
-      tone: document.getElementById('tone').value,
-      length: document.getElementById('length').value,
-      extras: document.getElementById('extras').value.trim()
-    };
-    const res = await fetch(window.location.pathname + '/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    draftEl.value = data.draft || '';
-    resultCard.style.display = 'block';
-    draftEl.focus();
+    genBtn.disabled = true;
+    try{
+      const payload = {
+        rating: document.getElementById('rating').value,
+        order: document.getElementById('order').value.trim(),
+        highlights: document.getElementById('highlights').value.trim(),
+        tone: document.getElementById('tone').value,
+        length: document.getElementById('length').value,
+        extras: document.getElementById('extras').value.trim()
+      };
+      const res = await fetch(window.location.pathname + '/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      draftEl.value = data.draft || '';
+      resultCard.style.display = 'block';
+      draftEl.focus();
+    }catch(e){
+      alert('Something went wrong generating the draft.');
+    }finally{
+      genBtn.disabled = false;
+    }
   });
 
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(draftEl.value);
       copyBtn.textContent = 'Copied!';
-      setTimeout(() => copyBtn.textContent = 'Copy', 1200);
+      setTimeout(() => copyBtn.textContent = 'Copy', 1100);
     } catch (e) {
-      alert('Copy failed — select the text and copy.');
+      alert('Copy failed — select and copy manually.');
     }
   });
 </script>

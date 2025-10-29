@@ -8,36 +8,37 @@ generator client {
 }
 
 model Business {
-  id             String   @id @default(cuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  name           String
-  slug           String   @unique
-  logoUrl        String?
+  name    String
+  slug    String  @unique
+  logoUrl String?
 
-  brandColor     String?   // Single poster background color
-  logoBgColor    String?   // New field for the logo background color
-  ctaColor       String?   // New field for the call-to-action button color
+  brandColor     String? // Single poster background color
+  logoBgColor    String? // New field for the logo background color
+  ctaColor       String? // New field for the call-to-action button color
   ctaBgColor     String?
   publicTitle    String?
   publicSubtitle String?
   publicFooter   String?
-  ctaLabel       String?   // still here if you want to store variant type
-  ctaText        String?   // main CTA headline text
-  showLogo       Boolean   @default(true)
+  ctaLabel       String? // still here if you want to store variant type
+  ctaText        String? // main CTA headline text
+  showLogo       Boolean @default(true)
 
-  instagramUrl   String?
-  tiktokUrl      String?
-  youtubeUrl     String?
-  googleReviewUrl  String?
+  instagramUrl    String?
+  tiktokUrl       String?
+  youtubeUrl      String?
+  googleReviewUrl String?
 
-  qrLayout       String?   // "horizontal" or "vertical"
+  qrLayout String? // "horizontal" or "vertical"
 
-  steps          Step[]   // relation: dynamic steps
+  steps Step[] // relation: dynamic steps
 
   histories      RedirectHistory[]
   scanEvents     ScanEvent[]
+  aiReviewConfig AiReviewConfig?
 }
 
 model Step {
@@ -68,4 +69,34 @@ model ScanEvent {
   userAgent  String?
   ipHash     String?
   referer    String?
+}
+
+model AiReviewConfig {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String   @unique
+
+  // Which single-platform the AI poster targets (start with google)
+  platform String @default("google") // "google" | future: "yelp" | "facebook" ...
+
+  // Defaults for the generator UI
+  defaultTone   String? // "friendly" | "professional" | "enthusiastic"
+  defaultLength String? // "short" | "medium" | "long"
+
+  // Copy shown on AI poster / form
+  headline   String? // e.g., "We’ll draft it for you — edit & paste"
+  disclaimer String? // e.g., "Reviews are optional and appreciated."
+
+  // LLM readiness (optional for now; used later)
+  llmEnabled  Boolean @default(false)
+  llmProvider String? // "openai" | "anthropic" | etc. (future)
+  llmModel    String? // "gpt-4o-mini", etc.
+  llmSystem   String? // custom system prompt
+  llmTemp     Float? // 0.0 - 1.0
+
+  // Reserved for feature flags / experiments
+  flags Json?
 }
