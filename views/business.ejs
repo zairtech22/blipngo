@@ -114,12 +114,48 @@
             <% if (typeof posters !== 'undefined' && posters && posters.length) { %>
               <ul style="padding-left:14px; margin:8px 0">
                 <% posters.forEach(p => { %>
-                  <li style="margin-bottom:8px;">
-                    <strong><%= p.platform %></strong>
-                    <% if (p.publicTitle) { %> — <%= p.publicTitle %><% } %>
-                    <form method="post" action="/business/<%= biz.slug %>/poster/<%= p.id %>/delete" style="display:inline; margin-left:8px">
-                      <button class="btn danger" type="submit" onclick="return confirm('Delete this poster?')">Delete</button>
-                    </form>
+                  <li style="margin-bottom:12px; padding:8px; border:1px solid var(--border); border-radius:8px">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px">
+                      <div>
+                        <strong class="poster-platform" data-platform="<%= p.platform.toLowerCase() %>"><%= p.platform %></strong>
+                        <% if (p.publicTitle) { %> — <%= p.publicTitle %><% } %>
+                      </div>
+                      <div style="display:flex; gap:8px">
+                        <button class="btn secondary preview-btn" data-platform="<%= p.platform.toLowerCase() %>" type="button">Preview</button>
+                        <button class="btn secondary edit-btn" data-poster-id="<%= p.id %>" type="button">Edit</button>
+                        <form method="post" action="/business/<%= biz.slug %>/poster/<%= p.id %>/delete" style="display:inline;">
+                          <button class="btn danger" type="submit" onclick="return confirm('Delete this poster?')">Delete</button>
+                        </form>
+                      </div>
+                    </div>
+                    <div class="edit-form" data-poster-id="<%= p.id %>" style="display:none; padding-top:8px; border-top:1px solid var(--border)">
+                      <form method="post" action="/business/<%= biz.slug %>/poster/<%= p.id %>/update">
+                        <div class="row">
+                          <div>
+                            <label>Poster Title</label>
+                            <input name="publicTitle" type="text" value="<%= p.publicTitle || '' %>" placeholder="Custom heading" />
+                          </div>
+                          <div>
+                            <label>Brand Color</label>
+                            <input name="brandColor" type="text" value="<%= p.brandColor || '' %>" placeholder="#FFD21E" />
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div>
+                            <label>CTA Text</label>
+                            <input name="ctaText" type="text" value="<%= p.ctaText || '' %>" />
+                          </div>
+                          <div>
+                            <label>Logo BG</label>
+                            <input name="logoBgColor" type="color" value="<%= p.logoBgColor || '#0A0A0A' %>" />
+                          </div>
+                        </div>
+                        <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px">
+                          <button class="btn secondary cancel-edit" type="button">Cancel</button>
+                          <button class="btn" type="submit">Save Changes</button>
+                        </div>
+                      </form>
+                    </div>
                   </li>
                 <% }) %>
               </ul>
@@ -262,7 +298,17 @@
 
     <aside class="preview">
       <div class="preview-head">
-        <div><strong>Live Preview</strong></div>
+        <div>
+          <strong>Live Preview</strong>
+          <select id="platformPreview" style="margin-left:8px; padding:4px 8px; border-radius:6px; border:1px solid var(--border)">
+            <option value="all">All Platforms</option>
+            <option value="instagram">Instagram</option>
+            <option value="tiktok">TikTok</option>
+            <option value="youtube">YouTube</option>
+            <option value="google">Google Reviews</option>
+          </select>
+          <span id="activePosterInfo" style="margin-left:8px; font-size:13px; color:var(--muted)"></span>
+        </div>
         <div class="preview-controls">
           <button class="chip" id="a4Btn">A4</button>
           <button class="chip" id="letterBtn">Letter</button>
@@ -282,16 +328,67 @@
     const ltrBtn = document.getElementById('letterBtn');
     const refreshBtn = document.getElementById('refreshBtn');
     const printBtn = document.getElementById('printBtn');
+    const platformSelect = document.getElementById('platformPreview');
+    const activePosterInfo = document.getElementById('activePosterInfo');
     const setActive = btn => [a4Btn,ltrBtn].forEach(b=>b.classList.toggle('active', b===btn));
 
+    // Platform preview selector
+    function updatePreviewFrame(platform = 'all') {
+      const ts = Date.now();
+      frame.src = `/p/<%= biz.slug %>?platform=${platform}&ts=${ts}`;
+      
+      // Update active poster info
+      const activePlatform = document.querySelector(`.poster-platform[data-platform="${platform}"]`);
+      if (activePlatform) {
+        activePosterInfo.textContent = `Using ${activePlatform.closest('li').querySelector('strong').textContent} poster`;
+      } else {
+        activePosterInfo.textContent = platform === 'all' ? 'Using business defaults' : 'No platform-specific poster (using defaults)';
+      }
+    }
+
+    platformSelect.addEventListener('change', (e) => {
+      updatePreviewFrame(e.target.value);
+    });
+
+    // Preview buttons in poster list
+    document.querySelectorAll('.preview-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const platform = btn.dataset.platform;
+        platformSelect.value = platform;
+        updatePreviewFrame(platform);
+      });
+    });
+
+    // Edit buttons and forms
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const posterId = btn.dataset.posterId;
+        const form = document.querySelector(`.edit-form[data-poster-id="${posterId}"]`);
+        form.style.display = 'block';
+        btn.style.display = 'none';
+      });
+    });
+
+    document.querySelectorAll('.cancel-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const form = btn.closest('.edit-form');
+        form.style.display = 'none';
+        form.closest('li').querySelector('.edit-btn').style.display = 'inline-block';
+      });
+    });
+
+    // Format & print controls
     a4Btn.addEventListener('click', e=>{e.preventDefault(); setActive(a4Btn); sendToPoster({type:'setFormat', payload:'a4'})});
     ltrBtn.addEventListener('click', e=>{e.preventDefault(); setActive(ltrBtn); sendToPoster({type:'setFormat', payload:'letter'})});
-    refreshBtn.addEventListener('click', e=>{e.preventDefault(); frame.src = '/p/<%= biz.slug %>?ts=' + Date.now(); });
+    refreshBtn.addEventListener('click', e=>{e.preventDefault(); updatePreviewFrame(platformSelect.value); });
     printBtn.addEventListener('click', e=>{e.preventDefault(); sendToPoster({type:'print'})});
     function sendToPoster(msg){ frame.contentWindow?.postMessage(msg, window.location.origin); }
 
     // Auto-refresh preview shortly after save
-    form.addEventListener('submit', ()=> setTimeout(()=>{ frame.src = '/p/<%= biz.slug %>?ts=' + Date.now(); }, 400));
+    form.addEventListener('submit', ()=> setTimeout(()=>{ updatePreviewFrame(platformSelect.value); }, 400));
+
+    // Initialize
+    updatePreviewFrame('all');
   </script>
 </body>
 </html>
