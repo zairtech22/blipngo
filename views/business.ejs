@@ -108,6 +108,78 @@
         </div>
 
         <div class="card">
+          <h3>6) Posters (All / Platform-specific)</h3>
+          <div class="hint">Create a poster that either targets ALL platforms (shows every enabled QR) or a single platform so you can customize messaging and colors per social page.</div>
+          <div style="margin-top:10px">
+            <% if (typeof posters !== 'undefined' && posters && posters.length) { %>
+              <ul style="padding-left:14px; margin:8px 0">
+                <% posters.forEach(p => { %>
+                  <li style="margin-bottom:8px;">
+                    <strong><%= p.platform %></strong>
+                    <% if (p.publicTitle) { %> — <%= p.publicTitle %><% } %>
+                    <form method="post" action="/business/<%= biz.slug %>/poster/<%= p.id %>/delete" style="display:inline; margin-left:8px">
+                      <button class="btn danger" type="submit" onclick="return confirm('Delete this poster?')">Delete</button>
+                    </form>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <div class="hint">No posters yet. Create one below.</div>
+            <% } %>
+          </div>
+
+          <form method="post" action="/business/<%= biz.slug %>/poster" style="margin-top:12px">
+            <label>Target platform</label>
+            <select name="platform">
+              <option value="ALL">All platforms</option>
+              <option value="INSTAGRAM">Instagram</option>
+              <option value="TIKTOK">TikTok</option>
+              <option value="YOUTUBE">YouTube</option>
+              <option value="GOOGLE">Google Reviews</option>
+            </select>
+
+            <label>Poster Title (optional)</label>
+            <input name="publicTitle" type="text" placeholder="Custom heading for this poster" />
+
+            <label>Poster Subtitle (optional)</label>
+            <input name="publicSubtitle" type="text" placeholder="Small tagline" />
+
+            <div class="row">
+              <div>
+                <label>Brand Color</label>
+                <input name="brandColor" type="text" placeholder="#FFD21E" />
+              </div>
+              <div>
+                <label>Logo BG Color</label>
+                <input name="logoBgColor" type="color" value="#0A0A0A" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>CTA Text Color</label>
+                <input name="ctaColor" type="color" value="#EDC400" />
+              </div>
+              <div>
+                <label>CTA BG Color</label>
+                <input name="ctaBgColor" type="color" value="#0A0A0A" />
+              </div>
+            </div>
+
+            <label>Headline (CTA) Text</label>
+            <input name="ctaText" type="text" />
+
+            <div class="switch" style="margin-top:8px">
+              <input id="showLogoPoster" name="showLogo" type="checkbox" value="1" checked />
+              <label for="showLogoPoster" style="margin:0; font-weight:600">Show logo on this poster</label>
+            </div>
+
+            <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px">
+              <button class="btn" type="submit">Create poster</button>
+            </div>
+          </form>
+        </div>
+        <div class="card">
           <h3>2) [CTA] Call To Action </h3>
           <div class="row">
             <div>

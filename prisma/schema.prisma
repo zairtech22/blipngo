@@ -35,9 +35,44 @@ model Business {
   qrLayout       String?   // "horizontal" or "vertical"
 
   steps          Step[]   // relation: dynamic steps
-
   histories      RedirectHistory[]
+  posters        Poster[] // relation: posters for platform-specific or ALL posters
   scanEvents     ScanEvent[]
+}
+
+enum PosterPlatform {
+  ALL
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  GOOGLE
+}
+
+// Posters allow businesses to create either a single poster that shows all
+// enabled platforms (platform = ALL) or platform-specific posters which
+// override visual/content fields for a single platform.
+model Poster {
+  id           String         @id @default(cuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  business     Business       @relation(fields: [businessId], references: [id])
+  businessId   String
+
+  // Which platform this poster targets. ALL means a poster that shows all
+  // enabled platform QR cards. INSTAGRAM/TIKTOK/YOUTUBE/GOOGLE are platform-specific.
+  platform     PosterPlatform @default(ALL)
+
+  // Optional override fields. If null, the business-level value is used.
+  brandColor     String?
+  logoBgColor    String?
+  ctaColor       String?
+  ctaBgColor     String?
+  publicTitle    String?
+  publicSubtitle String?
+  publicFooter   String?
+  ctaText        String?
+  showLogo       Boolean?      
 }
 
 model Step {
