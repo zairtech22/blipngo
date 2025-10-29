@@ -178,12 +178,11 @@
 
         <div class="card">
           <h3>5) Footer (small print)</h3>
-          <input name="publicFooter" type="text" value="<%= biz.publicFooter || 'Perks tied to follows/check-ins. Feedback appreciated, never required.' %>" />
+          <input name="publicFooter" type="text" value="<%= biz.publicFooter || 'Powered By BlipNGo' %>" />
         </div>
 
         <div class="savebar">
           <button class="btn" type="submit">Save changes</button>
-          <a class="btn secondary" href="/poster/<%= biz.slug %>" target="_blank">Open Poster</a>
           <a class="btn secondary" href="/p/<%= biz.slug %>" target="_blank">Public Poster</a>
         </div>
       </form>
@@ -215,12 +214,12 @@
 
     a4Btn.addEventListener('click', e=>{e.preventDefault(); setActive(a4Btn); sendToPoster({type:'setFormat', payload:'a4'})});
     ltrBtn.addEventListener('click', e=>{e.preventDefault(); setActive(ltrBtn); sendToPoster({type:'setFormat', payload:'letter'})});
-    refreshBtn.addEventListener('click', e=>{e.preventDefault(); frame.src = '/poster/<%= biz.slug %>?ts=' + Date.now(); });
+    refreshBtn.addEventListener('click', e=>{e.preventDefault(); frame.src = '/p/<%= biz.slug %>?ts=' + Date.now(); });
     printBtn.addEventListener('click', e=>{e.preventDefault(); sendToPoster({type:'print'})});
     function sendToPoster(msg){ frame.contentWindow?.postMessage(msg, window.location.origin); }
 
     // Auto-refresh preview shortly after save
-    form.addEventListener('submit', ()=> setTimeout(()=>{ frame.src = '/poster/<%= biz.slug %>?ts=' + Date.now(); }, 400));
+    form.addEventListener('submit', ()=> setTimeout(()=>{ frame.src = '/p/<%= biz.slug %>?ts=' + Date.now(); }, 400));
   </script>
 </body>
 </html>
