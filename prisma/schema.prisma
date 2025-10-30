@@ -87,8 +87,12 @@ model AiReviewConfig {
   defaultLength String? // "short" | "medium" | "long"
 
   // Copy shown on AI poster / form
-  headline   String? // e.g., "We’ll draft it for you — edit & paste"
-  disclaimer String? // e.g., "Reviews are optional and appreciated."
+  headline      String? // e.g., "We'll draft it for you — edit & paste"
+  disclaimer    String? // e.g., "Reviews are optional and appreciated."
+  welcome       String? // Welcome message
+  qrTitle       String? // AI Review Assistant title
+  qrDescription String? // QR section description
+  qrTip         String? // Tip text below QR code
 
   // LLM readiness (optional for now; used later)
   llmEnabled  Boolean @default(false)

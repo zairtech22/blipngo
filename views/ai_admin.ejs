@@ -51,18 +51,9 @@
     cursor:pointer;
     transition:all 0.2s ease;
   }
-  .btn:hover{
-    transform:translateY(-1px);
-    box-shadow:var(--shadow);
-  }
-  .btn.secondary{
-    background:#fff;
-    border:1px solid var(--border);
-    color:var(--ink)
-  }
-  .btn.secondary:hover {
-    background: #f8fafc;
-  }
+  .btn:hover{ transform:translateY(-1px); box-shadow:var(--shadow); }
+  .btn.secondary{ background:#fff; border:1px solid var(--border); color:var(--ink) }
+  .btn.secondary:hover { background:#f8fafc; }
   main{
     max-width:1200px;
     margin:0 auto;
@@ -70,149 +61,66 @@
     display:grid;
     gap:24px
   }
-  .layout{
-    display:grid;
-    grid-template-columns:1fr 360px;
-    gap:24px;
-    align-items:start
-  }
+  .layout{ display:grid; grid-template-columns:1fr 360px; gap:24px; align-items:start }
   .card{
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:20px;
-    box-shadow:var(--shadow);
-    transition:box-shadow 0.2s ease;
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:20px; box-shadow:var(--shadow); transition:box-shadow .2s ease;
   }
-  .card h3{
-    margin:0 0 16px 0;
-    font-size:18px;
-    letter-spacing:-0.01em;
-    color:var(--ink);
-    font-weight:600
-  }
-  .card.small{
-    padding:16px
-  }
-  .card .lead{
-    color:var(--muted);
-    font-size:14px;
-    margin-bottom:16px;
-    line-height:1.5
-  }
-  fieldset{
-    border:0;
-    margin:0;
-    padding:0
-  }
-  .field-legend{
-    font-weight:600;
-    margin-bottom:12px;
-    color:var(--ink)
-  }
-  .help{
-    color:var(--muted);
-    font-size:13px;
-    margin-top:8px
-  }
-  .toggle{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    margin:12px 0
-  }
-  .switch{width:44px;height:24px;background:#e6e7eb;border-radius:999px;position:relative;display:inline-block;cursor:pointer}
-  .switch .knob{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .18s}
-  .switch.on{background:var(--ink)}
-  .switch.on .knob{left:23px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  label{
-    display:block;
-    font-weight:600;
-    margin:12px 0 8px;
-    color:var(--ink)
-  }
+  .card h3{ margin:0 0 16px 0; font-size:18px; letter-spacing:-0.01em; color:var(--ink); font-weight:600 }
+  .card.small{ padding:16px }
+  .card .lead{ color:var(--muted); font-size:14px; margin-bottom:16px; line-height:1.5 }
+  fieldset{ border:0; margin:0; padding:0 }
+  .field-legend{ font-weight:600; margin-bottom:12px; color:var(--ink) }
+  .help{ color:var(--muted); font-size:13px; margin-top:8px }
+  .toggle{ display:inline-flex; align-items:center; gap:10px; margin:12px 0 }
+  .switch{ width:44px; height:24px; background:#e6e7eb; border-radius:999px; position:relative; display:inline-block; cursor:pointer }
+  .switch .knob{ position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition:all .18s }
+  .switch.on{ background:var(--ink) }
+  .switch.on .knob{ left:23px }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+  label{ display:block; font-weight:600; margin:12px 0 8px; color:var(--ink) }
   input[type="text"], input[type="url"], textarea, select, input[type="number"]{
-    width:100%;
-    padding:12px 16px;
-    border:1px solid #e2e8f0;
-    border-radius:8px;
-    background:#fff;
-    font:inherit;
-    transition:all 0.2s ease
+    width:100%; padding:12px 16px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; font:inherit; transition:all .2s ease
   }
   input[type="text"]:focus, input[type="url"]:focus, textarea:focus, select:focus, input[type="number"]:focus {
-    outline:none;
-    border-color:var(--ink);
-    box-shadow:0 0 0 3px rgb(0 0 0 / 0.1)
+    outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgb(0 0 0 / 0.1)
   }
-  textarea{
-    resize:vertical;
-    min-height:120px
-  }
+  textarea{ resize:vertical; min-height:120px }
   .savebar{
-    position:sticky;
-    bottom:24px;
-    background:#ffffffee;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:16px;
-    display:flex;
-    justify-content:flex-end;
-    gap:12px;
-    backdrop-filter:saturate(1.1) blur(4px);
-    box-shadow:var(--shadow)
+    position:sticky; bottom:24px; background:#ffffffee; border:1px solid var(--border);
+    border-radius:12px; padding:16px; display:flex; justify-content:flex-end; gap:12px;
+    backdrop-filter:saturate(1.1) blur(4px); box-shadow:var(--shadow)
   }
-  .grid{
-    display:grid;
-    gap:12px
-  }
+  .grid{ display:grid; gap:12px }
   .qrbox{
-    border:1px dashed var(--border);
-    border-radius:10px;
-    background:#fff;
-    display:grid;
-    place-items:center;
-    padding:20px;
-    box-shadow:var(--shadow)
+    border:1px dashed var(--border); border-radius:10px; background:#fff; display:grid;
+    place-items:center; padding:20px; box-shadow:var(--shadow)
   }
-  .muted{color:var(--muted);font-size:13px}
-
-  .preview-card{
-    background:linear-gradient(180deg,#fff,#f8fafc);
-    border:1px solid var(--border);
-    padding:16px;
-    border-radius:10px;
-    text-align:center;
-    box-shadow:var(--shadow);
-    transition:transform 0.2s ease
-  }
-  .preview-card:hover {
-    transform:translateY(-2px)
-  }
-  .preview-head{
-    font-weight:700;
-    margin-bottom:8px;
-    color:var(--ink)
-  }
-  .preview-sub{
-    color:var(--muted);
-    font-size:14px;
-    line-height:1.4
-  }
-
-  /* responsive */
-  @media (max-width: 1024px){ 
-    .layout{
-      grid-template-columns:1fr
-    }
-    main {
-      padding:16px
-    }
-  }
+  .muted{ color:var(--muted); font-size:13px }
+  .preview-card{ background:linear-gradient(180deg,#fff,#f8fafc); border:1px solid var(--border);
+    padding:16px; border-radius:10px; text-align:center; box-shadow:var(--shadow); transition:transform .2s ease }
+  .preview-card:hover { transform:translateY(-2px) }
+  .preview-head{ font-weight:700; margin-bottom:8px; color:var(--ink) }
+  .preview-sub{ color:var(--muted); font-size:14px; line-height:1.4 }
+  @media (max-width:1024px){ .layout{ grid-template-columns:1fr } main{ padding:16px } }
 </style>
 </head>
 <body>
+<%
+  // ---- NORMALIZE INPUTS (supports old `cfg` or new top-level locals) ----
+  const _platform      = (typeof platform      !== 'undefined' && platform)      ? platform      : ((typeof cfg !== 'undefined' && cfg.platform)      ? cfg.platform      : 'google');
+  const _headline      = (typeof headline      !== 'undefined')                  ? headline      : ((typeof cfg !== 'undefined' && cfg.headline)      ? cfg.headline      : '');
+  const _disclaimer    = (typeof disclaimer    !== 'undefined')                  ? disclaimer    : ((typeof cfg !== 'undefined' && cfg.disclaimer)    ? cfg.disclaimer    : '');
+  const _defaultTone   = (typeof defaultTone   !== 'undefined')                  ? defaultTone   : ((typeof cfg !== 'undefined' && cfg.defaultTone)   ? cfg.defaultTone   : '');
+  const _defaultLength = (typeof defaultLength !== 'undefined')                  ? defaultLength : ((typeof cfg !== 'undefined' && cfg.defaultLength) ? cfg.defaultLength : '');
+  const _llmEnabled    = (typeof llmEnabled    !== 'undefined')                  ? !!(+llmEnabled) : ((typeof cfg !== 'undefined' && cfg.llmEnabled) ? !!cfg.llmEnabled  : false);
+  const _llmProvider   = (typeof llmProvider   !== 'undefined')                  ? llmProvider   : ((typeof cfg !== 'undefined' && cfg.llmProvider)   ? cfg.llmProvider   : '');
+  const _llmModel      = (typeof llmModel      !== 'undefined')                  ? llmModel      : ((typeof cfg !== 'undefined' && cfg.llmModel)      ? cfg.llmModel      : '');
+  const _llmTemp       = (typeof llmTemp       !== 'undefined')                  ? llmTemp       : ((typeof cfg !== 'undefined' && typeof cfg.llmTemp !== 'undefined') ? cfg.llmTemp : '');
+  const _llmSystem     = (typeof llmSystem     !== 'undefined')                  ? llmSystem     : ((typeof cfg !== 'undefined' && cfg.llmSystem)     ? cfg.llmSystem     : '');
+  const _targetUrl     = (typeof targetUrl     !== 'undefined')                  ? targetUrl     : null;
+%>
+
 <header>
   <div>
     <h1><strong><%= biz.name %></strong> <span class="hint">/ AI Reviews</span></h1>
@@ -233,25 +141,25 @@
         <div>
           <label>Platform</label>
           <select name="platform">
-            <option value="google" <%= (cfg.platform==='google'?'selected':'') %>>Google</option>
+            <option value="google" <%= (_platform==='google'?'selected':'') %>>Google</option>
           </select>
           <div class="hint">Single platform per AI poster.</div>
         </div>
         <div>
-            <label>Google Review Link</label>
-            <input name="googleReviewUrl" type="url" value="<%= targetUrl || '' %>" placeholder="https://search.google.com/local/writereview?placeid=XXXX"/>
-            <div class="hint">Paste the business’s direct “Write a review” URL.</div>
+          <label>Google Review Link</label>
+          <input name="googleReviewUrl" type="url" value="<%= _targetUrl || '' %>" placeholder="https://search.google.com/local/writereview?placeid=XXXX"/>
+          <div class="hint">Paste the business’s direct “Write a review” URL.</div>
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Poster Headline</label>
-          <input name="headline" type="text" value="<%= cfg.headline || '' %>" placeholder="We’ll draft it for you — edit & paste"/>
+          <input name="headline" type="text" value="<%= _headline || '' %>" placeholder="We’ll draft it for you — edit & paste"/>
         </div>
         <div>
           <label>Disclaimer</label>
-          <input name="disclaimer" type="text" value="<%= cfg.disclaimer || '' %>" placeholder="Reviews are optional and appreciated."/>
+          <input name="disclaimer" type="text" value="<%= _disclaimer || '' %>" placeholder="Reviews are optional and appreciated."/>
         </div>
       </div>
 
@@ -260,18 +168,18 @@
           <label>Default Tone</label>
           <select name="defaultTone">
             <option value="">(none)</option>
-            <option value="friendly"     <%= cfg.defaultTone==='friendly'?'selected':'' %>>Friendly</option>
-            <option value="professional" <%= cfg.defaultTone==='professional'?'selected':'' %>>Professional</option>
-            <option value="enthusiastic" <%= cfg.defaultTone==='enthusiastic'?'selected':'' %>>Enthusiastic</option>
+            <option value="friendly"     <%= _defaultTone==='friendly'?'selected':'' %>>Friendly</option>
+            <option value="professional" <%= _defaultTone==='professional'?'selected':'' %>>Professional</option>
+            <option value="enthusiastic" <%= _defaultTone==='enthusiastic'?'selected':'' %>>Enthusiastic</option>
           </select>
         </div>
         <div>
           <label>Default Length</label>
           <select name="defaultLength">
             <option value="">(none)</option>
-            <option value="short"  <%= cfg.defaultLength==='short'?'selected':'' %>>Short</option>
-            <option value="medium" <%= cfg.defaultLength==='medium'?'selected':'' %>>Medium</option>
-            <option value="long"   <%= cfg.defaultLength==='long'?'selected':'' %>>Long</option>
+            <option value="short"  <%= _defaultLength==='short'?'selected':'' %>>Short</option>
+            <option value="medium" <%= _defaultLength==='medium'?'selected':'' %>>Medium</option>
+            <option value="long"   <%= _defaultLength==='long'?'selected':'' %>>Long</option>
           </select>
         </div>
       </div>
@@ -281,29 +189,29 @@
       <h3>LLM (optional)</h3>
       <div class="lead">Use an LLM to draft suggested reviews automatically.</div>
       <div class="toggle">
-        <div class="switch <%= cfg.llmEnabled ? 'on' : '' %>" id="llmSwitch" data-on="<%= cfg.llmEnabled ? '1' : '0' %>"></div>
+        <div class="switch <%= _llmEnabled ? 'on' : '' %>" id="llmSwitch"></div>
         <label style="margin:0">Enable LLM</label>
       </div>
-      <input type="hidden" name="llmEnabled" value="<%= cfg.llmEnabled ? '1' : '0' %>" id="llmEnabledInput" />
-      <div class="row" id="llmRows">
+      <input type="hidden" name="llmEnabled" value="<%= _llmEnabled ? '1' : '0' %>" id="llmEnabledInput" />
+      <div class="row" id="llmRows" style="<%= _llmEnabled ? '' : 'opacity:.45;pointer-events:none' %>">
         <div>
           <label>Provider</label>
-          <input name="llmProvider" type="text" value="<%= cfg.llmProvider || '' %>" placeholder="openai"/>
+          <input name="llmProvider" type="text" value="<%= _llmProvider || '' %>" placeholder="openai"/>
         </div>
         <div>
           <label>Model</label>
-          <input name="llmModel" type="text" value="<%= cfg.llmModel || '' %>" placeholder="gpt-4o-mini"/>
+          <input name="llmModel" type="text" value="<%= _llmModel || '' %>" placeholder="gpt-4o-mini"/>
         </div>
       </div>
       <div class="row">
         <div>
           <label>Temperature</label>
-          <input name="llmTemp" type="number" step="0.1" min="0" max="1" value="<%= typeof cfg.llmTemp==='number' ? cfg.llmTemp : '' %>"/>
+          <input name="llmTemp" type="number" step="0.1" min="0" max="1" value="<%= (typeof _llmTemp==='number' || (typeof _llmTemp==='string' && _llmTemp.length)) ? _llmTemp : '' %>"/>
         </div>
         <div></div>
       </div>
       <label>System Prompt</label>
-      <textarea name="llmSystem" placeholder="You are a helpful assistant that drafts sincere customer feedback…"><%= cfg.llmSystem || '' %></textarea>
+      <textarea name="llmSystem" placeholder="You are a helpful assistant that drafts sincere customer feedback…"><%= _llmSystem || '' %></textarea>
     </div>
 
     <div class="savebar">
@@ -317,7 +225,7 @@
         <h3>QR Preview</h3>
         <div class="qr-container">
           <div class="qrbox">
-            <img id="qrImg" src="/qr/ai/<%= biz.slug %>/<%= cfg.platform %>.png" width="220" alt="QR Code Preview"/>
+            <img id="qrImg" src="/qr/ai/<%= biz.slug %>/<%= _platform %>.png" width="220" alt="QR Code Preview"/>
           </div>
           <div class="qr-actions-group">
             <div class="qr-actions">
@@ -336,8 +244,8 @@
 
             <div class="link-actions">
               <div class="link-group">
-                <input type="hidden" id="posterUrl" value="<%= `${BASE_URL}/ai-poster/${biz.slug}/${cfg.platform}` %>" />
-                <a class="btn secondary icon-button" target="_blank" href="<%= `${BASE_URL}/ai-poster/${biz.slug}/${cfg.platform}` %>" title="Open Poster">
+                <input type="hidden" id="posterUrl" value="<%= `${BASE_URL}/ai-poster/${biz.slug}/${_platform}` %>" />
+                <a class="btn secondary icon-button" target="_blank" href="<%= `${BASE_URL}/ai-poster/${biz.slug}/${_platform}` %>" title="Open Poster">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 3H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H16C17.6569 21 19 19.6569 19 18V10M12 3L19 10M12 3V9C12 9.55228 12.4477 10 13 10H19" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -350,8 +258,8 @@
               </div>
 
               <div class="link-group">
-                <input type="hidden" id="formUrl" value="<%= `${BASE_URL}/ai-review/${biz.slug}?platform=${cfg.platform}` %>" />
-                <a class="btn secondary icon-button" target="_blank" href="<%= `${BASE_URL}/ai-review/${biz.slug}?platform=${cfg.platform}` %>" title="Open Form">
+                <input type="hidden" id="formUrl" value="<%= `${BASE_URL}/ai-review/${biz.slug}?platform=${_platform}` %>" />
+                <a class="btn secondary icon-button" target="_blank" href="<%= `${BASE_URL}/ai-review/${biz.slug}?platform=${_platform}` %>" title="Open Form">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -368,72 +276,18 @@
       </div>
 
       <style>
-        .qr-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-        }
-        .qrbox {
-          padding: 24px;
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          background: #fff;
-          box-shadow:var(--shadow);
-        }
-        .qr-actions-group {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          width: 100%;
-        }
-        .qr-actions {
-          display: flex;
-          gap: 12px;
-          justify-content: center;
-          padding-bottom: 8px;
-          border-bottom: 1px solid var(--border);
-        }
-        .link-actions {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .link-group {
-          display: flex;
-          gap: 8px;
-          justify-content: center;
-        }
-        .icon-button {
-          width: 44px;
-          height: 44px;
-          padding: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 10px;
-        }
-        .icon-button svg {
-          transition: all 0.2s ease;
-        }
-        #refreshQr:hover svg {
-          transform: rotate(180deg);
-        }
-        .icon-button:hover svg {
-          transform: scale(1.1);
-        }
-        .link-group .icon-button {
-          width: 38px;
-          height: 38px;
-        }
-        @media (max-width: 1024px) {
-          .qr-section {
-            grid-template-columns: 1fr;
-          }
-          .qrbox {
-            justify-self: center;
-          }
-        }
+        .qr-container{ display:flex; flex-direction:column; align-items:center; gap:16px }
+        .qrbox{ padding:24px; border:1px solid var(--border); border-radius:12px; background:#fff; box-shadow:var(--shadow) }
+        .qr-actions-group{ display:flex; flex-direction:column; gap:16px; width:100% }
+        .qr-actions{ display:flex; gap:12px; justify-content:center; padding-bottom:8px; border-bottom:1px solid var(--border) }
+        .link-actions{ display:flex; flex-direction:column; gap:8px }
+        .link-group{ display:flex; gap:8px; justify-content:center }
+        .icon-button{ width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:10px }
+        .icon-button svg{ transition:all .2s ease }
+        #refreshQr:hover svg{ transform:rotate(180deg) }
+        .icon-button:hover svg{ transform:scale(1.1) }
+        .link-group .icon-button{ width:38px; height:38px }
+        @media (max-width:1024px){ .qr-section{ grid-template-columns:1fr } .qrbox{ justify-self:center } }
       </style>
 
       <div class="card small">
@@ -454,8 +308,6 @@
     const plat = document.querySelector('select[name="platform"]');
     const posterUrl = document.getElementById('posterUrl');
     const formUrl   = document.getElementById('formUrl');
-    const openPoster= document.getElementById('openPoster');
-    const openForm  = document.getElementById('openForm');
     const copyPoster= document.getElementById('copyPoster');
     const copyForm  = document.getElementById('copyForm');
     const qrImg     = document.getElementById('qrImg');
@@ -463,24 +315,22 @@
     function update(){
       if(!plat) return;
       const p = plat.value;
-      const poster = (typeof BASE_URL!=='undefined' ? BASE_URL : '') + '/ai-poster/' + '<%= biz.slug %>' + '/' + p;
-      const form   = (typeof BASE_URL!=='undefined' ? BASE_URL : '') + '/ai-review/' + '<%= biz.slug %>' + '?platform=' + p;
+      const poster = '<%= BASE_URL %>' + '/ai-poster/' + '<%= biz.slug %>' + '/' + p;
+      const form   = '<%= BASE_URL %>' + '/ai-review/' + '<%= biz.slug %>' + '?platform=' + p;
       if(posterUrl) posterUrl.value = poster;
-      if(openPoster) openPoster.href = poster;
-      if(formUrl) formUrl.value   = form;
-      if(openForm) openForm.href   = form;
-      if(qrImg) qrImg.src = '/qr/ai/' + '<%= biz.slug %>' + '/' + p + '.png?ts=' + Date.now();
+      if(formUrl)   formUrl.value   = form;
+      if(qrImg)     qrImg.src = '/qr/ai/' + '<%= biz.slug %>' + '/' + p + '.png?ts=' + Date.now();
     }
 
     async function copy(btn, text){
-      try { await navigator.clipboard.writeText(text); const old=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>btn.textContent=old,900); }
+      try { await navigator.clipboard.writeText(text);
+            const old=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>btn.textContent=old,900); }
       catch { alert('Copy failed — copy manually.'); }
     }
 
     if(copyPoster && posterUrl) copyPoster.addEventListener('click', ()=>copy(copyPoster, posterUrl.value));
-    if(copyForm && formUrl) copyForm.addEventListener('click', ()=>copy(copyForm, formUrl.value));
+    if(copyForm && formUrl)     copyForm.addEventListener('click',   ()=>copy(copyForm,   formUrl.value));
 
-    // QR download functionality
     const downloadQr = document.getElementById('downloadQr');
     if(downloadQr && qrImg) {
       downloadQr.addEventListener('click', async () => {
@@ -496,10 +346,6 @@
           a.click();
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
-          downloadQr.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"></path></svg>';
-          setTimeout(() => {
-            downloadQr.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15L12 3M12 15L8 11M12 15L16 11" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L2 19C2 20.1046 2.89543 21 4 21L20 21C21.1046 21 22 20.1046 22 19L22 17" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-          }, 1000);
         } catch (err) {
           console.error('Failed to download QR code:', err);
           alert('Failed to download QR code. Please try again.');
@@ -507,28 +353,38 @@
       });
     }
 
-    // headline live preview
-    const headlineInput = document.querySelector('input[name="headline"]');
+    const headlineInput   = document.querySelector('input[name="headline"]');
     const disclaimerInput = document.querySelector('input[name="disclaimer"]');
     const previewHeadline = document.getElementById('previewHeadline');
-    const previewSub = document.getElementById('previewSub');
+    const previewSub      = document.getElementById('previewSub');
     if(headlineInput && previewHeadline){ headlineInput.addEventListener('input', e=>{ previewHeadline.textContent = e.target.value || 'Preview headline will show here' }) }
-    if(disclaimerInput && previewSub){ disclaimerInput.addEventListener('input', e=>{ previewSub.textContent = e.target.value || 'Optional disclaimer text' }) }
+    if(disclaimerInput && previewSub){   disclaimerInput.addEventListener('input', e=>{ previewSub.textContent   = e.target.value || 'Optional disclaimer text'      }) }
 
-    // refresh QR
     const refreshBtn = document.getElementById('refreshQr');
-    if(refreshBtn && qrImg){ refreshBtn.addEventListener('click', ()=>{ const sel = document.querySelector('select[name="platform"]'); const p = sel?sel.value: '<%= cfg.platform %>'; qrImg.src = '/qr/ai/' + '<%= biz.slug %>' + '/' + p + '.png?ts=' + Date.now(); refreshBtn.textContent='Refreshing...'; setTimeout(()=>refreshBtn.textContent='Refresh QR',800) }) }
+    if(refreshBtn && qrImg){
+      refreshBtn.addEventListener('click', ()=>{
+        const p = plat ? plat.value : '<%= _platform %>';
+        qrImg.src = '/qr/ai/' + '<%= biz.slug %>' + '/' + p + '.png?ts=' + Date.now();
+      });
+    }
 
     // LLM toggle behavior
     const llmSwitch = document.getElementById('llmSwitch');
     const llmEnabledInput = document.getElementById('llmEnabledInput');
     const llmRows = document.getElementById('llmRows');
-    function setLlm(enabled){ if(!llmSwitch || !llmEnabledInput || !llmRows) return; if(enabled){ llmSwitch.classList.add('on'); llmEnabledInput.value='1'; llmRows.style.opacity='1'; llmRows.style.pointerEvents='auto' } else { llmSwitch.classList.remove('on'); llmEnabledInput.value='0'; llmRows.style.opacity='0.45'; llmRows.style.pointerEvents='none' } }
+    function setLlm(enabled){
+      if(!llmSwitch || !llmEnabledInput || !llmRows) return;
+      if(enabled){
+        llmSwitch.classList.add('on'); llmEnabledInput.value='1';
+        llmRows.style.opacity='1'; llmRows.style.pointerEvents='auto';
+      } else {
+        llmSwitch.classList.remove('on'); llmEnabledInput.value='0';
+        llmRows.style.opacity='.45'; llmRows.style.pointerEvents='none';
+      }
+    }
     if(llmSwitch){ llmSwitch.addEventListener('click', ()=>{ const on = llmEnabledInput.value!=='1'; setLlm(on) }); setLlm(llmEnabledInput.value==='1'); }
 
-    // also update urls when platform changes
     if(plat){ plat.addEventListener('change', update); }
-    // initial update
     update();
   }catch(err){ console.error('AI admin init error', err); }
 })();

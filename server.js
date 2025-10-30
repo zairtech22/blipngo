@@ -286,7 +286,6 @@ app.get('/p/:slug', async (req, res) => {
 
 // ---------- AI REVIEW ADMIN + POSTER ----------
 
-// Ensure AiReviewConfig exists for a business
 async function ensureAiConfig(bizId) {
   let cfg = await prisma.aiReviewConfig.findUnique({ where: { businessId: bizId } });
   if (!cfg) {
@@ -305,15 +304,26 @@ async function ensureAiConfig(bizId) {
   return cfg;
 }
 
-// Admin UI to edit AI poster settings
+// === UPDATED === Admin UI to edit AI poster settings (render the editor shell)
+// Pass top-level vars the editor expects (platform, headline, etc.)
 app.get('/admin/ai/:slug', basicAuth, async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Business not found');
 
   const cfg = await ensureAiConfig(biz.id);
-  const targetUrl = biz.googleReviewUrl || null;
+  const platform = String(req.query.platform || cfg.platform || 'google').toLowerCase();
 
-  res.render('ai_admin', { biz, cfg, targetUrl, BASE_URL });
+  res.render('ai_admin', {
+    biz,
+    BASE_URL,
+    platform,
+    // Editor form defaults:
+    headline: cfg.headline || '',
+    welcome: cfg.welcome || null,
+    qrTitle: cfg.qrTitle || 'AI Review Assistant ✨',
+    qrDescription: cfg.qrDescription || 'Open the assistant to get a short draft you can tweak, copy, and post in moments.',
+    qrTip: cfg.qrTip || 'Point your camera at the QR to start — we\'re here to make it quick and easy.'
+  });
 });
 
 // Save AI settings (+ editable Google link with history log)
@@ -341,7 +351,7 @@ app.post('/admin/ai/:slug/save', basicAuth, async (req, res) => {
 
   const tx = [];
 
-  // Update AI config (idempotent)
+  // Update AI config
   tx.push(
     prisma.aiReviewConfig.update({
       where: { businessId: biz.id },
@@ -392,9 +402,7 @@ app.get('/ai-review/:slug', async (req, res) => {
   const cfg = await prisma.aiReviewConfig.findUnique({ where: { businessId: biz.id } });
   const platform = String(req.query.platform || cfg?.platform || 'google').toLowerCase();
 
-  const platformTargets = {
-    google: biz.googleReviewUrl || null,
-  };
+  const platformTargets = { google: biz.googleReviewUrl || null };
   const targetUrl = platformTargets[platform] || null;
 
   // lightweight analytics
@@ -446,13 +454,82 @@ app.post('/ai-review/:slug/generate', async (req, res) => {
   res.json({ draft });
 });
 
-// AI Review Poster (public)
+// Save AI Poster Settings
+app.post('/admin/ai/:slug/poster', basicAuth, async (req, res) => {
+  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+  if (!biz) return res.status(404).send('Not found');
+
+  const {
+    headline,
+    welcome,
+    qrTitle,
+    qrDescription,
+    qrTip,
+    footer: publicFooter
+  } = req.body;
+
+  // Update AI Review config
+  await prisma.aiReviewConfig.upsert({
+    where: { businessId: biz.id },
+    create: {
+      businessId: biz.id,
+      headline: nz(headline),
+      welcome: nz(welcome),
+      qrTitle: nz(qrTitle),
+      qrDescription: nz(qrDescription),
+      qrTip: nz(qrTip)
+    },
+    update: {
+      headline: nz(headline),
+      welcome: nz(welcome),
+      qrTitle: nz(qrTitle),
+      qrDescription: nz(qrDescription),
+      qrTip: nz(qrTip)
+    }
+  });
+
+  // Update business footer if provided
+  if (publicFooter !== undefined) {
+    await prisma.business.update({
+      where: { id: biz.id },
+      data: { publicFooter: nz(publicFooter) }
+    });
+  }
+
+  res.redirect(`/admin/ai/${biz.slug}`);
+});
+
+// === UPDATED === AI Review Poster (public, poster-only; safe for iframe embed)
 app.get('/ai-poster/:slug/:platform', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
+
   const cfg = await prisma.aiReviewConfig.findUnique({ where: { businessId: biz.id } });
   const platform = String(req.params.platform || cfg?.platform || 'google').toLowerCase();
-  res.render('poster_ai_review', { biz, platform, BASE_URL, headline: cfg?.headline });
+
+  // Allow preview overrides from URL params (used by editor live preview)
+  const {
+    headline = cfg?.headline,
+    welcome = cfg?.welcome,
+    qrTitle = cfg?.qrTitle,
+    qrDescription = cfg?.qrDescription,
+    qrTip = cfg?.qrTip,
+    footer
+  } = req.query;
+
+  // DO NOT render admin/editor here; this route must stay poster-only.
+  res.render('poster_ai_review', {
+    biz,
+    platform,
+    BASE_URL,
+    headline,
+    welcome,
+    qrTitle,
+    qrDescription,
+    qrTip,
+    publicFooter: footer || biz.publicFooter,
+    embed: req.query.embed === '1' // optional flag if your EJS wants to tweak styles for embeds
+  });
 });
 
 // ---------- Redirect + Analytics + QR ----------
