@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title><%= biz.name %> — AI Review Settings</title>
 <style>
-  :root{ 
-    --ink:#0A0A0A; 
-    --muted:#6b7280; 
-    --bg:#f8fafc; 
-    --paper:#fff; 
-    --border:#e5e7eb; 
-    --brand:#0A0A0A; 
-    --cta:#0A0A0A; 
+  :root{
+    --ink:#0A0A0A;
+    --muted:#6b7280;
+    --bg:#f8fafc;
+    --paper:#fff;
+    --border:#e5e7eb;
+    --brand:#0A0A0A;
+    --cta:#0A0A0A;
     --cta-fg:#fff;
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
-  *{box-sizing:border-box} 
+  *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0;
@@ -26,88 +26,62 @@
     line-height:1.5;
   }
   header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:16px 24px;
-    background:#fff;
-    border-bottom:1px solid var(--border);
-    position:sticky;
-    top:0;
-    z-index:20;
-    box-shadow:var(--shadow);
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 24px;background:#fff;border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:20;box-shadow:var(--shadow);
   }
   h1{margin:0;font-size:20px;letter-spacing:-0.01em}
   .hint{color:var(--muted);font-size:13px}
   .btn{
-    border:1px solid transparent;
-    background:var(--brand);
-    color:#fff;
-    padding:10px 16px;
-    border-radius:8px;
-    font-weight:600;
-    text-decoration:none;
-    display:inline-block;
-    cursor:pointer;
-    transition:all 0.2s ease;
+    border:1px solid transparent;background:var(--brand);color:#fff;
+    padding:10px 16px;border-radius:8px;font-weight:600;text-decoration:none;
+    display:inline-block;cursor:pointer;transition:all .2s ease;
   }
-  .btn:hover{ transform:translateY(-1px); box-shadow:var(--shadow); }
-  .btn.secondary{ background:#fff; border:1px solid var(--border); color:var(--ink) }
-  .btn.secondary:hover { background:#f8fafc; }
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .btn.secondary{background:#fff;border:1px solid var(--border);color:var(--ink)}
+  .btn.secondary:hover{background:#f8fafc}
   main{
-    max-width:1200px;
-    margin:0 auto;
-    padding:24px;
-    display:grid;
-    gap:24px
+    max-width:1400px;margin:0 auto;padding:24px;display:grid;gap:24px
   }
-  .layout{ display:grid; grid-template-columns:1fr 360px; gap:24px; align-items:start }
+  /* Layout A: editor left (520px), preview right */
+  .layout{display:grid;grid-template-columns:520px 1fr;gap:20px;align-items:start}
+  @media (max-width:1100px){ .layout{grid-template-columns:1fr} }
+
   .card{
-    background:#fff; border:1px solid var(--border); border-radius:12px;
-    padding:20px; box-shadow:var(--shadow); transition:box-shadow .2s ease;
+    background:#fff;border:1px solid var(--border);border-radius:12px;
+    padding:20px;box-shadow:var(--shadow);transition:box-shadow .2s ease;
+    margin-bottom:14px;
   }
-  .card h3{ margin:0 0 16px 0; font-size:18px; letter-spacing:-0.01em; color:var(--ink); font-weight:600 }
-  .card.small{ padding:16px }
-  .card .lead{ color:var(--muted); font-size:14px; margin-bottom:16px; line-height:1.5 }
-  fieldset{ border:0; margin:0; padding:0 }
-  .field-legend{ font-weight:600; margin-bottom:12px; color:var(--ink) }
-  .help{ color:var(--muted); font-size:13px; margin-top:8px }
-  .toggle{ display:inline-flex; align-items:center; gap:10px; margin:12px 0 }
-  .switch{ width:44px; height:24px; background:#e6e7eb; border-radius:999px; position:relative; display:inline-block; cursor:pointer }
-  .switch .knob{ position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition:all .18s }
-  .switch.on{ background:var(--ink) }
-  .switch.on .knob{ left:23px }
-  .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
-  label{ display:block; font-weight:600; margin:12px 0 8px; color:var(--ink) }
-  input[type="text"], input[type="url"], textarea, select, input[type="number"]{
-    width:100%; padding:12px 16px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; font:inherit; transition:all .2s ease
+  .card h3{margin:0 0 16px;font-size:18px;letter-spacing:-0.01em;color:var(--ink);font-weight:600}
+  .card.small{padding:16px}
+  .lead{color:var(--muted);font-size:14px;margin-bottom:16px;line-height:1.5}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  label{display:block;font-weight:600;margin:12px 0 8px;color:var(--ink)}
+  input[type="text"],input[type="url"],textarea,select,input[type="number"]{
+    width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font:inherit;transition:all .2s ease
   }
-  input[type="text"]:focus, input[type="url"]:focus, textarea:focus, select:focus, input[type="number"]:focus {
-    outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgb(0 0 0 / 0.1)
+  input[type="text"]:focus,input[type="url"]:focus,textarea:focus,select:focus,input[type="number"]:focus{
+    outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgb(0 0 0 / 0.1)
   }
-  textarea{ resize:vertical; min-height:120px }
+  textarea{resize:vertical;min-height:120px}
   .savebar{
-    position:sticky; bottom:24px; background:#ffffffee; border:1px solid var(--border);
-    border-radius:12px; padding:16px; display:flex; justify-content:flex-end; gap:12px;
-    backdrop-filter:saturate(1.1) blur(4px); box-shadow:var(--shadow)
+    position:sticky;bottom:24px;background:#ffffffee;border:1px solid var(--border);
+    border-radius:12px;padding:16px;display:flex;justify-content:flex-end;gap:12px;
+    backdrop-filter:saturate(1.1) blur(4px);box-shadow:var(--shadow)
   }
-  .grid{ display:grid; gap:12px }
-  .qrbox{
-    border:1px dashed var(--border); border-radius:10px; background:#fff; display:grid;
-    place-items:center; padding:20px; box-shadow:var(--shadow)
-  }
-  .muted{ color:var(--muted); font-size:13px }
-  .preview-card{ background:linear-gradient(180deg,#fff,#f8fafc); border:1px solid var(--border);
-    padding:16px; border-radius:10px; text-align:center; box-shadow:var(--shadow); transition:transform .2s ease }
-  .preview-card:hover { transform:translateY(-2px) }
-  .preview-head{ font-weight:700; margin-bottom:8px; color:var(--ink) }
-  .preview-sub{ color:var(--muted); font-size:14px; line-height:1.4 }
-  @media (max-width:1024px){ .layout{ grid-template-columns:1fr } main{ padding:16px } }
+  /* Right preview column */
+  .preview{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+  .preview-head{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#fff}
+  .preview-iframe{width:100%;height:calc(100vh - 170px);border:0;background:#f1f5f9}
+  .qrbox{border:1px dashed var(--border);border-radius:10px;background:#fff;display:grid;place-items:center;padding:20px;box-shadow:var(--shadow)}
+  .qr-actions{display:flex;gap:12px;justify-content:center;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .link-actions{display:flex;flex-direction:column;gap:8px}
+  .link-group{display:flex;gap:8px;justify-content:center}
 </style>
 </head>
 <body>
 <%
-  // ---- NORMALIZE INPUTS (supports old `cfg` or new top-level locals) ----
+  /* ---------- NORMALIZE INPUTS ---------- */
   const _platform      = (typeof platform      !== 'undefined' && platform)      ? platform      : ((typeof cfg !== 'undefined' && cfg.platform)      ? cfg.platform      : 'google');
   const _headline      = (typeof headline      !== 'undefined')                  ? headline      : ((typeof cfg !== 'undefined' && cfg.headline)      ? cfg.headline      : '');
   const _disclaimer    = (typeof disclaimer    !== 'undefined')                  ? disclaimer    : ((typeof cfg !== 'undefined' && cfg.disclaimer)    ? cfg.disclaimer    : '');
@@ -119,6 +93,19 @@
   const _llmTemp       = (typeof llmTemp       !== 'undefined')                  ? llmTemp       : ((typeof cfg !== 'undefined' && typeof cfg.llmTemp !== 'undefined') ? cfg.llmTemp : '');
   const _llmSystem     = (typeof llmSystem     !== 'undefined')                  ? llmSystem     : ((typeof cfg !== 'undefined' && cfg.llmSystem)     ? cfg.llmSystem     : '');
   const _targetUrl     = (typeof targetUrl     !== 'undefined')                  ? targetUrl     : null;
+
+  /* Poster-copy (allow missing) */
+  const _welcome       = (typeof welcome       !== 'undefined') ? welcome       : (typeof cfg!=='undefined' && cfg.welcome       ? cfg.welcome       : '');
+  const _qrTitle       = (typeof qrTitle       !== 'undefined') ? qrTitle       : (typeof cfg!=='undefined' && cfg.qrTitle       ? cfg.qrTitle       : '');
+  const _qrDescription = (typeof qrDescription !== 'undefined') ? qrDescription : (typeof cfg!=='undefined' && cfg.qrDescription ? cfg.qrDescription : '');
+  const _qrTip         = (typeof qrTip         !== 'undefined') ? qrTip         : (typeof cfg!=='undefined' && cfg.qrTip         ? cfg.qrTip         : '');
+  const _publicFooter  = (typeof publicFooter  !== 'undefined') ? publicFooter  : (biz.publicFooter || '');
+
+  /* Safe defaults (double-quoted so apostrophes are ok) */
+  const DEF_WELCOME = "Welcome — we'll help you craft a friendly, genuine review in seconds ✨";
+  const DEF_QRTIP   = "Point your camera at the QR to start — we'll make it quick and easy.";
+  const DEF_QR_DESC = "Open the assistant to get a short draft you can tweak, copy, and post in moments.";
+  const DEF_HEADLINE = "We'll draft it for you — edit & paste";
 %>
 
 <header>
@@ -134,165 +121,165 @@
 
 <main>
   <div class="layout">
-    <form method="post" action="/admin/ai/<%= biz.slug %>/save">
-    <div class="card">
-      <h3>Poster Settings</h3>
-      <div class="row">
-        <div>
-          <label>Platform</label>
-          <select name="platform">
-            <option value="google" <%= (_platform==='google'?'selected':'') %>>Google</option>
-          </select>
-          <div class="hint">Single platform per AI poster.</div>
-        </div>
-        <div>
-          <label>Google Review Link</label>
-          <input name="googleReviewUrl" type="url" value="<%= _targetUrl || '' %>" placeholder="https://search.google.com/local/writereview?placeid=XXXX"/>
-          <div class="hint">Paste the business’s direct “Write a review” URL.</div>
-        </div>
-      </div>
+    <!-- Left: Editor -->
+    <section>
+      <!-- SETTINGS (save to /save) -->
+      <form id="settingsForm" method="post" action="/admin/ai/<%= biz.slug %>/save">
+        <div class="card">
+          <h3>Poster Settings</h3>
+          <div class="row">
+            <div>
+              <label>Platform</label>
+              <select name="platform">
+                <option value="google" <%= (_platform==='google'?'selected':'') %>>Google</option>
+              </select>
+              <div class="hint">Single platform per AI poster.</div>
+            </div>
+            <div>
+              <label>Google Review Link</label>
+              <input name="googleReviewUrl" type="url" value="<%= _targetUrl || '' %>" placeholder="https://search.google.com/local/writereview?placeid=XXXX"/>
+              <div class="hint">Paste the direct 'Write a review' URL.</div>
+            </div>
+          </div>
 
-      <div class="row">
-        <div>
-          <label>Poster Headline</label>
-          <input name="headline" type="text" value="<%= _headline || '' %>" placeholder="We’ll draft it for you — edit & paste"/>
-        </div>
-        <div>
-          <label>Disclaimer</label>
-          <input name="disclaimer" type="text" value="<%= _disclaimer || '' %>" placeholder="Reviews are optional and appreciated."/>
-        </div>
-      </div>
+          <div class="row">
+            <div>
+              <label>Disclaimer</label>
+              <input name="disclaimer" type="text" value="<%= _disclaimer || '' %>" placeholder="Reviews are optional and appreciated."/>
+            </div>
+            <div></div>
+          </div>
 
-      <div class="row">
-        <div>
-          <label>Default Tone</label>
-          <select name="defaultTone">
-            <option value="">(none)</option>
-            <option value="friendly"     <%= _defaultTone==='friendly'?'selected':'' %>>Friendly</option>
-            <option value="professional" <%= _defaultTone==='professional'?'selected':'' %>>Professional</option>
-            <option value="enthusiastic" <%= _defaultTone==='enthusiastic'?'selected':'' %>>Enthusiastic</option>
-          </select>
+          <div class="row">
+            <div>
+              <label>Default Tone</label>
+              <select name="defaultTone">
+                <option value="">(none)</option>
+                <option value="friendly"     <%= _defaultTone==='friendly'?'selected':'' %>>Friendly</option>
+                <option value="professional" <%= _defaultTone==='professional'?'selected':'' %>>Professional</option>
+                <option value="enthusiastic" <%= _defaultTone==='enthusiastic'?'selected':'' %>>Enthusiastic</option>
+              </select>
+            </div>
+            <div>
+              <label>Default Length</label>
+              <select name="defaultLength">
+                <option value="">(none)</option>
+                <option value="short"  <%= _defaultLength==='short'?'selected':'' %>>Short</option>
+                <option value="medium" <%= _defaultLength==='medium'?'selected':'' %>>Medium</option>
+                <option value="long"   <%= _defaultLength==='long'?'selected':'' %>>Long</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Default Length</label>
-          <select name="defaultLength">
-            <option value="">(none)</option>
-            <option value="short"  <%= _defaultLength==='short'?'selected':'' %>>Short</option>
-            <option value="medium" <%= _defaultLength==='medium'?'selected':'' %>>Medium</option>
-            <option value="long"   <%= _defaultLength==='long'?'selected':'' %>>Long</option>
-          </select>
-        </div>
-      </div>
-    </div>
 
-    <div class="card">
-      <h3>LLM (optional)</h3>
-      <div class="lead">Use an LLM to draft suggested reviews automatically.</div>
-      <div class="toggle">
-        <div class="switch <%= _llmEnabled ? 'on' : '' %>" id="llmSwitch"></div>
-        <label style="margin:0">Enable LLM</label>
-      </div>
-      <input type="hidden" name="llmEnabled" value="<%= _llmEnabled ? '1' : '0' %>" id="llmEnabledInput" />
-      <div class="row" id="llmRows" style="<%= _llmEnabled ? '' : 'opacity:.45;pointer-events:none' %>">
-        <div>
-          <label>Provider</label>
-          <input name="llmProvider" type="text" value="<%= _llmProvider || '' %>" placeholder="openai"/>
+        <div class="card">
+          <h3>LLM (optional)</h3>
+          <div class="lead">Use an LLM to draft suggested reviews automatically.</div>
+          <div class="toggle" style="display:inline-flex;align-items:center;gap:10px;margin:12px 0">
+            <div class="switch <%= _llmEnabled ? 'on' : '' %>" id="llmSwitch" style="width:44px;height:24px;background:#e6e7eb;border-radius:999px;position:relative;display:inline-block;cursor:pointer">
+              <div class="knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .18s"></div>
+            </div>
+            <label style="margin:0">Enable LLM</label>
+          </div>
+          <input type="hidden" name="llmEnabled" value="<%= _llmEnabled ? '1' : '0' %>" id="llmEnabledInput" />
+          <div class="row" id="llmRows" style="<%= _llmEnabled ? '' : 'opacity:.45;pointer-events:none' %>">
+            <div>
+              <label>Provider</label>
+              <input name="llmProvider" type="text" value="<%= _llmProvider || '' %>" placeholder="openai"/>
+            </div>
+            <div>
+              <label>Model</label>
+              <input name="llmModel" type="text" value="<%= _llmModel || '' %>" placeholder="gpt-4o-mini"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Temperature</label>
+              <input name="llmTemp" type="number" step="0.1" min="0" max="1" value="<%= (typeof _llmTemp==='number' || (typeof _llmTemp==='string' && _llmTemp.length)) ? _llmTemp : '' %>"/>
+            </div>
+            <div></div>
+          </div>
+          <label>System Prompt</label>
+          <textarea name="llmSystem" placeholder="You are a helpful assistant that drafts sincere customer feedback…"><%= _llmSystem || '' %></textarea>
         </div>
-        <div>
-          <label>Model</label>
-          <input name="llmModel" type="text" value="<%= _llmModel || '' %>" placeholder="gpt-4o-mini"/>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Temperature</label>
-          <input name="llmTemp" type="number" step="0.1" min="0" max="1" value="<%= (typeof _llmTemp==='number' || (typeof _llmTemp==='string' && _llmTemp.length)) ? _llmTemp : '' %>"/>
-        </div>
-        <div></div>
-      </div>
-      <label>System Prompt</label>
-      <textarea name="llmSystem" placeholder="You are a helpful assistant that drafts sincere customer feedback…"><%= _llmSystem || '' %></textarea>
-    </div>
 
-    <div class="savebar">
-      <a class="btn secondary" href="/business/<%= biz.slug %>">Cancel</a>
-      <button class="btn" type="submit">Save Settings</button>
-    </div>
-    </form>
+        <div class="savebar">
+          <a class="btn secondary" href="/business/<%= biz.slug %>">Cancel</a>
+          <button class="btn" type="submit">Save Settings</button>
+        </div>
+      </form>
 
+      <!-- POSTER COPY (save to /poster) -->
+      <form id="posterCopyForm" method="post" action="/admin/ai/<%= biz.slug %>/poster" class="card">
+        <h3>Poster Copy (public-facing)</h3>
+        <label>Poster Headline</label>
+        <input name="headline" type="text"
+              value="<%= _headline || DEF_HEADLINE %>"
+              placeholder="We'll draft it for you — edit & paste"/>
+
+        <label>Welcome Message</label>
+        <input name="welcome" type="text" value="<%= _welcome || DEF_WELCOME %>" placeholder="Friendly welcome text"/>
+
+        <div class="row">
+          <div>
+            <label>QR Section Title</label>
+            <input name="qrTitle" type="text" value="<%= _qrTitle || 'AI Review Assistant ✨' %>" placeholder="AI Review Assistant ✨"/>
+          </div>
+          <div>
+            <label>QR Tip</label>
+            <input name="qrTip" type="text" value="<%= _qrTip || DEF_QRTIP %>" placeholder="Short scanning tip"/>
+          </div>
+        </div>
+
+        <label>QR Section Description</label>
+        <textarea name="qrDescription" placeholder="Open the assistant to get a short draft you can tweak, copy, and post in moments."><%= _qrDescription || DEF_QR_DESC %></textarea>
+
+        <label>Footer Text</label>
+        <input name="footer" type="text" value="<%= _publicFooter || 'Thanks for supporting local!' %>" placeholder="Thanks for supporting local!"/>
+
+        <div class="savebar" style="position:static;margin-top:12px">
+          <button class="btn" type="submit">Save Poster Copy</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Right: Live Preview + QR/Links -->
     <aside>
-      <div class="card small">
+      <div class="preview">
+        <div class="preview-head">
+          <strong>Live Poster Preview</strong>
+          <a class="btn secondary" id="openPosterBtn" target="_blank" href="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1">Open</a>
+        </div>
+        <iframe id="posterFrame" class="preview-iframe" src="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1&ts=<%= Date.now() %>"></iframe>
+      </div>
+
+      <div class="card small" style="margin-top:14px">
         <h3>QR Preview</h3>
-        <div class="qr-container">
-          <div class="qrbox">
-            <img id="qrImg" src="/qr/ai/<%= biz.slug %>/<%= _platform %>.png" width="220" alt="QR Code Preview"/>
+        <div class="qrbox" style="margin:12px 0">
+          <img id="qrImg" src="/qr/ai/<%= biz.slug %>/<%= _platform %>.png" width="220" alt="QR Code Preview"/>
+        </div>
+        <div class="qr-actions">
+          <button id="refreshQr" class="btn secondary" type="button">Refresh</button>
+          <button id="downloadQr" class="btn secondary" type="button">Download</button>
+        </div>
+
+        <div class="link-actions" style="margin-top:12px">
+          <div class="link-group">
+            <input type="hidden" id="posterUrl" value="<%= BASE_URL %>/ai-poster/<%= biz.slug %>/<%= _platform %>" />
+            <a class="btn secondary" target="_blank" href="<%= BASE_URL %>/ai-poster/<%= biz.slug %>/<%= _platform %>">Open Poster</a>
+            <button id="copyPoster" class="btn secondary" type="button">Copy Poster URL</button>
           </div>
-          <div class="qr-actions-group">
-            <div class="qr-actions">
-              <button id="refreshQr" class="btn secondary icon-button" type="button" title="Refresh QR Code">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 12a9 9 0 1 1-1.7-5.3L23 10"></path>
-                </svg>
-              </button>
-              <button id="downloadQr" class="btn secondary icon-button" type="button" title="Download QR Code">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 15L12 3M12 15L8 11M12 15L16 11" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M2 17L2 19C2 20.1046 2.89543 21 4 21L20 21C21.1046 21 22 20.1046 22 19L22 17" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-            </div>
-
-            <div class="link-actions">
-              <div class="link-group">
-                <input type="hidden" id="posterUrl" value="<%= `${BASE_URL}/ai-poster/${biz.slug}/${_platform}` %>" />
-                <a class="btn secondary icon-button" target="_blank" href="<%= `${BASE_URL}/ai-poster/${biz.slug}/${_platform}` %>" title="Open Poster">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 3H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H16C17.6569 21 19 19.6569 19 18V10M12 3L19 10M12 3V9C12 9.55228 12.4477 10 13 10H19" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </a>
-                <button id="copyPoster" class="btn secondary icon-button" type="button" title="Copy Poster URL">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V17M8 5C8 3.89543 8.89543 3 10 3H16C17.1046 3 18 3.89543 18 5V17M8 5V17C8 18.1046 8.89543 19 10 19H18" stroke-linecap="round"/>
-                  </svg>
-                </button>
-              </div>
-
-              <div class="link-group">
-                <input type="hidden" id="formUrl" value="<%= `${BASE_URL}/ai-review/${biz.slug}?platform=${_platform}` %>" />
-                <a class="btn secondary icon-button" target="_blank" href="<%= `${BASE_URL}/ai-review/${biz.slug}?platform=${_platform}` %>" title="Open Form">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </a>
-                <button id="copyForm" class="btn secondary icon-button" type="button" title="Copy Form URL">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V17M8 5C8 3.89543 8.89543 3 10 3H16C17.1046 3 18 3.89543 18 5V17M8 5V17C8 18.1046 8.89543 19 10 19H18" stroke-linecap="round"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
+          <div class="link-group">
+            <input type="hidden" id="formUrl" value="<%= BASE_URL %>/ai-review/<%= biz.slug %>?platform=<%= _platform %>" />
+            <a class="btn secondary" target="_blank" href="<%= BASE_URL %>/ai-review/<%= biz.slug %>?platform=<%= _platform %>">Open Form</a>
+            <button id="copyForm" class="btn secondary" type="button">Copy Form URL</button>
           </div>
         </div>
       </div>
-
-      <style>
-        .qr-container{ display:flex; flex-direction:column; align-items:center; gap:16px }
-        .qrbox{ padding:24px; border:1px solid var(--border); border-radius:12px; background:#fff; box-shadow:var(--shadow) }
-        .qr-actions-group{ display:flex; flex-direction:column; gap:16px; width:100% }
-        .qr-actions{ display:flex; gap:12px; justify-content:center; padding-bottom:8px; border-bottom:1px solid var(--border) }
-        .link-actions{ display:flex; flex-direction:column; gap:8px }
-        .link-group{ display:flex; gap:8px; justify-content:center }
-        .icon-button{ width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:10px }
-        .icon-button svg{ transition:all .2s ease }
-        #refreshQr:hover svg{ transform:rotate(180deg) }
-        .icon-button:hover svg{ transform:scale(1.1) }
-        .link-group .icon-button{ width:38px; height:38px }
-        @media (max-width:1024px){ .qr-section{ grid-template-columns:1fr } .qrbox{ justify-self:center } }
-      </style>
 
       <div class="card small">
         <h3>Quick Tips</h3>
-        <ol class="muted" style="margin:8px 0 0 18px">
+        <ol class="hint" style="margin:8px 0 0 18px">
           <li>Scan the QR to open the review helper</li>
           <li>Pick a tone & length, then edit the draft</li>
           <li>Copy & paste to the review page — thank you!</li>
@@ -305,40 +292,113 @@
 <script>
 (function(){
   try{
-    const plat = document.querySelector('select[name="platform"]');
-    const posterUrl = document.getElementById('posterUrl');
-    const formUrl   = document.getElementById('formUrl');
-    const copyPoster= document.getElementById('copyPoster');
-    const copyForm  = document.getElementById('copyForm');
-    const qrImg     = document.getElementById('qrImg');
+    var plat = document.querySelector('select[name="platform"]');
+    var settingsForm = document.getElementById('settingsForm');
+    var posterCopyForm = document.getElementById('posterCopyForm');
+    var frame = document.getElementById('posterFrame');
+    var openPosterBtn = document.getElementById('openPosterBtn');
 
-    function update(){
-      if(!plat) return;
-      const p = plat.value;
-      const poster = '<%= BASE_URL %>' + '/ai-poster/' + '<%= biz.slug %>' + '/' + p;
-      const form   = '<%= BASE_URL %>' + '/ai-review/' + '<%= biz.slug %>' + '?platform=' + p;
-      if(posterUrl) posterUrl.value = poster;
-      if(formUrl)   formUrl.value   = form;
-      if(qrImg)     qrImg.src = '/qr/ai/' + '<%= biz.slug %>' + '/' + p + '.png?ts=' + Date.now();
+    var posterUrl = document.getElementById('posterUrl');
+    var formUrl   = document.getElementById('formUrl');
+    var copyPoster= document.getElementById('copyPoster');
+    var copyForm  = document.getElementById('copyForm');
+    var qrImg     = document.getElementById('qrImg');
+    var refreshBtn= document.getElementById('refreshQr');
+    var downloadQr= document.getElementById('downloadQr');
+
+    var bizSlug = '<%= biz.slug %>';
+
+    function buildPreviewUrl(){
+      var base = '/ai-poster/' + bizSlug + '/' + (plat ? plat.value : '<%= _platform %>');
+      var url = new URL(base, window.location.origin);
+      // collect overrides from both forms
+      if(settingsForm){
+        var fd1 = new FormData(settingsForm);
+        fd1.forEach(function(v,k){
+          if(k==='platform') return; // already in path
+          var val = (v==null) ? '' : String(v).trim();
+          if(val) url.searchParams.set(k, val);
+        });
+      }
+      if(posterCopyForm){
+        var fd2 = new FormData(posterCopyForm);
+        fd2.forEach(function(v,k){
+          var val = (v==null) ? '' : String(v).trim();
+          if(val) url.searchParams.set(k, val);
+        });
+      }
+      url.searchParams.set('embed','1');
+      url.searchParams.set('ts', Date.now());
+      return url.toString();
+    }
+
+    function refreshPreview(){
+      if(!frame) return;
+      frame.src = buildPreviewUrl();
+      if(openPosterBtn){
+        try{
+          var u = new URL(frame.src);
+          u.searchParams.delete('ts');
+          openPosterBtn.href = u.toString();
+        }catch(e){}
+      }
+    }
+
+    function updateQr(){
+      if(!qrImg || !plat) return;
+      var p = plat.value;
+      qrImg.src = '/qr/ai/' + bizSlug + '/' + p + '.png?ts=' + Date.now();
+      if(posterUrl) posterUrl.value = '<%= BASE_URL %>/ai-poster/' + bizSlug + '/' + p;
+      if(formUrl)   formUrl.value   = '<%= BASE_URL %>/ai-review/' + bizSlug + '?platform=' + p;
+    }
+
+    var debounce;
+    function onAnyInput(){
+      clearTimeout(debounce);
+      debounce = setTimeout(refreshPreview, 140);
+    }
+
+    if(settingsForm) settingsForm.addEventListener('input', onAnyInput);
+    if(posterCopyForm) posterCopyForm.addEventListener('input', onAnyInput);
+
+    if(settingsForm){
+      settingsForm.addEventListener('submit', function(){
+        setTimeout(function(){ refreshPreview(); updateQr(); }, 350);
+      });
+    }
+    if(posterCopyForm){
+      posterCopyForm.addEventListener('submit', function(){
+        setTimeout(function(){ refreshPreview(); }, 350);
+      });
+    }
+
+    if(plat){
+      plat.addEventListener('change', function(){
+        refreshPreview();
+        updateQr();
+      });
     }
 
     async function copy(btn, text){
-      try { await navigator.clipboard.writeText(text);
-            const old=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>btn.textContent=old,900); }
-      catch { alert('Copy failed — copy manually.'); }
+      try{
+        await navigator.clipboard.writeText(text);
+        var old = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function(){ btn.textContent = old; }, 900);
+      }catch(e){
+        alert('Copy failed — copy manually.');
+      }
     }
+    if(copyPoster && posterUrl) copyPoster.addEventListener('click', function(){ copy(copyPoster, posterUrl.value); });
+    if(copyForm && formUrl)     copyForm.addEventListener('click',   function(){ copy(copyForm,   formUrl.value); });
 
-    if(copyPoster && posterUrl) copyPoster.addEventListener('click', ()=>copy(copyPoster, posterUrl.value));
-    if(copyForm && formUrl)     copyForm.addEventListener('click',   ()=>copy(copyForm,   formUrl.value));
-
-    const downloadQr = document.getElementById('downloadQr');
-    if(downloadQr && qrImg) {
-      downloadQr.addEventListener('click', async () => {
-        try {
-          const response = await fetch(qrImg.src);
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
+    if(downloadQr && qrImg){
+      downloadQr.addEventListener('click', async function(){
+        try{
+          var response = await fetch(qrImg.src);
+          var blob = await response.blob();
+          var url = window.URL.createObjectURL(blob);
+          var a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
           a.download = 'qr-code.png';
@@ -346,47 +406,49 @@
           a.click();
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
-        } catch (err) {
+        }catch(err){
           console.error('Failed to download QR code:', err);
           alert('Failed to download QR code. Please try again.');
         }
       });
     }
 
-    const headlineInput   = document.querySelector('input[name="headline"]');
-    const disclaimerInput = document.querySelector('input[name="disclaimer"]');
-    const previewHeadline = document.getElementById('previewHeadline');
-    const previewSub      = document.getElementById('previewSub');
-    if(headlineInput && previewHeadline){ headlineInput.addEventListener('input', e=>{ previewHeadline.textContent = e.target.value || 'Preview headline will show here' }) }
-    if(disclaimerInput && previewSub){   disclaimerInput.addEventListener('input', e=>{ previewSub.textContent   = e.target.value || 'Optional disclaimer text'      }) }
-
-    const refreshBtn = document.getElementById('refreshQr');
     if(refreshBtn && qrImg){
-      refreshBtn.addEventListener('click', ()=>{
-        const p = plat ? plat.value : '<%= _platform %>';
-        qrImg.src = '/qr/ai/' + '<%= biz.slug %>' + '/' + p + '.png?ts=' + Date.now();
-      });
+      refreshBtn.addEventListener('click', function(){ updateQr(); });
     }
 
-    // LLM toggle behavior
-    const llmSwitch = document.getElementById('llmSwitch');
-    const llmEnabledInput = document.getElementById('llmEnabledInput');
-    const llmRows = document.getElementById('llmRows');
+    // LLM toggle
+    var llmSwitch = document.getElementById('llmSwitch');
+    var llmEnabledInput = document.getElementById('llmEnabledInput');
+    var llmRows = document.getElementById('llmRows');
     function setLlm(enabled){
       if(!llmSwitch || !llmEnabledInput || !llmRows) return;
       if(enabled){
         llmSwitch.classList.add('on'); llmEnabledInput.value='1';
         llmRows.style.opacity='1'; llmRows.style.pointerEvents='auto';
-      } else {
+        llmSwitch.style.background = '#0A0A0A';
+        if(llmSwitch.firstElementChild){ llmSwitch.firstElementChild.style.left = '23px'; }
+      }else{
         llmSwitch.classList.remove('on'); llmEnabledInput.value='0';
         llmRows.style.opacity='.45'; llmRows.style.pointerEvents='none';
+        llmSwitch.style.background = '#e6e7eb';
+        if(llmSwitch.firstElementChild){ llmSwitch.firstElementChild.style.left = '3px'; }
       }
     }
-    if(llmSwitch){ llmSwitch.addEventListener('click', ()=>{ const on = llmEnabledInput.value!=='1'; setLlm(on) }); setLlm(llmEnabledInput.value==='1'); }
+    if(llmSwitch){
+      setLlm(<%= _llmEnabled ? 'true' : 'false' %>);
+      llmSwitch.addEventListener('click', function(){
+        var on = llmEnabledInput.value!=='1';
+        setLlm(on);
+      });
+    }
 
-    if(plat){ plat.addEventListener('change', update); }
-    update();
-  }catch(err){ console.error('AI admin init error', err); }
+    // Initial
+    refreshPreview();
+    updateQr();
+  }catch(err){
+    console.error('AI admin init error', err);
+  }
 })();
 </script>
 </body>
