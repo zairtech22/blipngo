@@ -31,31 +31,46 @@
     grid-template-rows: auto 1fr auto;
   }
 
+  /* Make layout similar to single-QR poster: centered header, large logo/title and big CTA */
   .head{
     padding: 20px;
     border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     align-items: center;
+    text-align: center;
   }
   .logo{
-    width:72px;height:72px;border-radius:14px;
+    width:120px;height:120px;border-radius:20px;
     background:<%= biz.logoBgColor || '#0A0A0A' %>;
-    display:grid;place-items:center;overflow:hidden
+    display:grid;place-items:center;overflow:hidden;border:4px solid var(--ink);
   }
-  .logo img{max-width:100%;max-height:100%;object-fit:contain}
-  .title{font-size:30px;font-weight:900;line-height:1.1}
+  .logo img{max-width:90%;max-height:90%;object-fit:contain;display:block}
+  .title{font-size:clamp(28px,4.6vw,44px);font-weight:900;line-height:1}
   .subtitle{color:var(--muted);font-weight:600}
 
   .cta{
-    margin: 16px 20px 0;
+    margin: 10px auto 18px;
     background: var(--cta-bg);
     color: var(--cta-fg);
-    padding: 14px 16px;
+    padding: 14px 18px;
     border-radius: 12px;
     font-weight: 900;
+    font-size: clamp(20px,3.6vw,32px);
+    max-width: 600px;
+    text-align: center;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
   }
+  /* Welcoming tweaks */
+  .welcome {
+    font-size: 15px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .panel{box-shadow: 0 12px 30px rgba(16,24,40,0.08)}
 
   .body{
     padding: 22px 20px 28px;
@@ -65,24 +80,24 @@
   }
 
   .panel{
-    border: 2px solid #111;
     border-radius: 16px;
     background: var(--brand);
     color: #fff;
-    display:grid;
-    grid-template-rows: auto 1fr auto;
-    justify-items:center;
-    align-content:start;
-    padding: 18px;
-    min-height: 560px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 22px;
+    min-height: 520px;
     text-align:center;
   }
-  .panel h2{margin:8px 0 10px 0;font-size:22px;font-weight:900}
+  .panel h2{margin:8px 0 10px 0;font-size:24px;font-weight:900}
   .panel p{margin:0 0 8px 0;font-weight:600}
   .qr{
-    background:#fff;border-radius:14px;padding:14px;margin-top:12px;border:1px solid #111;
+    background:#fff;border-radius:14px;padding:18px;margin-top:14px;border:1px solid rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center
   }
-  .qr img{width:260px;height:260px;display:block}
+  /* larger QR to match poster single-qr size */
+  .qr img{width:320px;height:320px;display:block}
 
   .tip{font-size:13px;opacity:.95;margin-top:10px}
 
@@ -111,28 +126,29 @@
       <div>
         <div class="title"><%= biz.name %></div>
         <div class="subtitle">Scan to write a <%= platform %> review in seconds</div>
+        <div class="welcome">Welcome — we'll help you craft a friendly, genuine review in seconds ✨</div>
       </div>
     </div>
 
     <!-- CTA bar (uses business colors) -->
-    <div class="cta">
-      <%= (typeof headline!=='undefined' && headline) ? headline : 'We’ll draft it for you — edit & paste, then post on '+platform+'.' %>
-    </div>
+      <div class="cta">
+        <%= (typeof headline!=='undefined' && headline) ? headline : ('We’ll draft a short, friendly review — edit & post to '+platform+' — it only takes a minute!') %>
+      </div>
 
     <div class="body">
       <div class="panel">
-        <h2>AI Review Helper</h2>
-        <p>Open the helper, get a ready draft, edit, copy & post.</p>
+  <h2>AI Review Assistant ✨</h2>
+  <p>Open the assistant to get a short draft you can tweak, copy, and post in moments.</p>
         <div class="qr">
           <img src="/qr/ai/<%= biz.slug %>/<%= platform %>.png" alt="AI Review QR"/>
         </div>
-        <div class="tip">Point your camera at the QR to start</div>
+  <div class="tip">Point your camera at the QR to start — we're here to make it quick and easy.</div>
       </div>
     </div>
 
     <div class="foot">
       <div><%= biz.publicFooter || 'Thanks for supporting local!' %></div>
-      <div><%= platform %> reviews</div>
+      <!-- <div><%= platform %> reviews</div> -->
     </div>
   </div>
 </body>
