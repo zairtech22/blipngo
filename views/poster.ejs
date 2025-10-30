@@ -163,7 +163,7 @@
     <main class="poster" id="poster">
       <div class="header">
         <div class="logo">
-          <% if (biz.showLogo && biz.logoUrl && biz.logoUrl.trim()) { %>
+          <% if (biz.logoUrl && biz.logoUrl.trim()) { %>
             <img src="<%= biz.logoUrl %>" alt="<%= biz.name %> logo" />
           <% } else { %>
             <div><%= (biz.name || 'Your Logo').split(' ').slice(0,2).join(' ') %></div>

@@ -1,155 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title><%= biz.name %> — AI Review Poster</title>
-<style>
-  :root{
-    --ink:#0A0A0A;
-    --muted:#6b7280;
-    --border:#e5e7eb;
-    --paper:#ffffff;
-    --brand:<%= biz.brandColor || '#111827' %>;
-    --cta-bg:<%= biz.ctaBgColor || '#0A0A0A' %>;
-    --cta-fg:<%= biz.ctaColor   || '#EDC400' %>;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:#f3f4f6;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= biz.name %> — AI Review Poster</title>
+  <style>
+    /* Editor styles */
+    .editor-layout {
+      display: grid;
+      grid-template-columns: 520px 1fr;
+      gap: 20px;
+      padding: 18px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (max-width:1100px) {
+      .editor-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 16px 16px 6px;
+      margin-bottom: 14px;
+    }
+    .card h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+    }
+    .hint {
+      color: #6b7280;
+      font-size: 12px;
+      margin: 6px 0 0;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 10px 0 6px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #fff;
+      font: inherit;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .preview {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      position: sticky;
+      top: 18px;
+    }
+    .preview-head {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    iframe {
+      width: 100%;
+      height: calc(100vh - 170px);
+      border: 0;
+      background: #f1f5f9;
+    }
+    .btn {
+      border: 2px solid #000;
+      background: #fff;
+      color: #000;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #000;
+      color: #fff;
+    }
+    
+    /* Poster styles */
+    :root {
+      --bg: <%= biz.brandColor ? biz.brandColor : '#FFD21E' %>;
+      --ink: #0A0A0A;
+      --paper: #FFFBEA;
+      --muted: #646464;
+      --accent: #262626;
+      --logo-bg: <%= biz.logoBgColor ? biz.logoBgColor : '#0A0A0A' %>;
+      --cta-color: <%= biz.ctaColor ? biz.ctaColor : '#EDC400' %>;
+      --cta-bg-color: <%= biz.ctaBgColor ? biz.ctaBgColor : '#0A0A0A' %>;
+    }
+    
+    /* ---------- BASE / SCREEN ---------- */
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .page {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .poster {
+      width: 100%;
+      max-width: 820px;
+      margin: auto;
+      background: var(--paper);
+      border-radius: 28px;
+      box-sizing: border-box;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+      padding: 32px 28px;
+    }
 
-  /* A4-ish poster canvas */
-  .sheet{
-    width: 794px;               /* A4 @96dpi */
-    min-height: 1123px;         /* A4 height */
-    margin: 16px auto;
-    background: var(--paper);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-  }
+    .header { text-align: center; margin-bottom: 24px; }
+    .logo {
+      width: 120px; height: 120px; margin: 0 auto 10px;
+      border: 4px solid var(--ink); border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: var(--logo-bg);
+    }
+    .logo img { 
+      max-width: 85%; 
+      max-height: 85%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    .logo div { 
+      color: var(--paper); 
+      font-weight: 700; 
+      text-align: center; 
+      font-size: 16px;
+      line-height: 1.4;
+    }
+    .bizname { margin: 0; font-weight: 800; font-size: clamp(28px, 4.6vw, 44px); }
+    .tagline {
+      margin: 4px 0 0; font-weight: 600; font-size: clamp(14px, 2.2vw, 18px); color: var(--muted);
+    }
+    .welcome {
+      margin: 8px 0 0; font-weight: 600; font-size: clamp(13px, 2vw, 15px); color: var(--muted);
+    }
+    .cta {
+      margin: 20px auto; padding: 12px 20px;
+      background: var(--cta-bg-color); color: var(--cta-color);
+      border-radius: 12px; font-weight: 900; font-size: clamp(22px, 3.8vw, 34px);
+      text-align: center; max-width: 600px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+    }
 
-  /* Make layout similar to single-QR poster: centered header, large logo/title and big CTA */
-  .head{
-    padding: 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
-    text-align: center;
-  }
-  .logo{
-    width:120px;height:120px;border-radius:20px;
-    background:<%= biz.logoBgColor || '#0A0A0A' %>;
-    display:grid;place-items:center;overflow:hidden;border:4px solid var(--ink);
-  }
-  .logo img{max-width:90%;max-height:90%;object-fit:contain;display:block}
-  .title{font-size:clamp(28px,4.6vw,44px);font-weight:900;line-height:1}
-  .subtitle{color:var(--muted);font-weight:600}
+    .qr-section {
+      background: var(--bg);
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    
+    .qr-section h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--ink);
+    }
+    
+    .qr-section p {
+      margin: 0 0 20px;
+      font-weight: 600;
+      color: var(--ink);
+    }
 
-  .cta{
-    margin: 10px auto 18px;
-    background: var(--cta-bg);
-    color: var(--cta-fg);
-    padding: 14px 18px;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: clamp(20px,3.6vw,32px);
-    max-width: 600px;
-    text-align: center;
-    text-transform: uppercase;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-  }
-  /* Welcoming tweaks */
-  .welcome {
-    font-size: 15px;
-    color: var(--muted);
-    margin-top: 6px;
-    font-weight: 600;
-  }
-  .panel{box-shadow: 0 12px 30px rgba(16,24,40,0.08)}
+    .qr-box {
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 0 auto;
+      width: fit-content;
+    }
 
-  .body{
-    padding: 22px 20px 28px;
-    display:grid;
-    grid-template-rows:auto 1fr;
-    gap: 18px;
-  }
+    .qr-box img {
+      width: 280px;
+      height: 280px;
+      display: block;
+    }
 
-  .panel{
-    border-radius: 16px;
-    background: var(--brand);
-    color: #fff;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding: 22px;
-    min-height: 520px;
-    text-align:center;
-  }
-  .panel h2{margin:8px 0 10px 0;font-size:24px;font-weight:900}
-  .panel p{margin:0 0 8px 0;font-weight:600}
-  .qr{
-    background:#fff;border-radius:14px;padding:18px;margin-top:14px;border:1px solid rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center
-  }
-  /* larger QR to match poster single-qr size */
-  .qr img{width:320px;height:320px;display:block}
+    .tip {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 600;
+    }
 
-  .tip{font-size:13px;opacity:.95;margin-top:10px}
+    .fineprint {
+      margin-top: 14px; text-align: center; font-size: 12px; color: var(--muted); font-weight: 600;
+    }
 
-  .foot{
-    padding: 12px 20px;
-    border-top: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 12px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-  }
-
-  @media print{
-    body{background:#fff}
-    .sheet{margin:0;border:none;border-radius:0;width:auto;min-height:auto}
-  }
-</style>
+    /* ---------- PRINT (A4/Letter) ---------- */
+    @media print {
+      @page { margin: 0; }
+      html, body { height: auto; }
+      body {
+        background: #fff !important; color: #000 !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .poster {
+        width: 186mm; height: 273mm; margin: 12mm auto; padding: 8mm;
+        border-width: 3px; box-sizing: border-box;
+      }
+      .logo { width: 30mm; height: 30mm; border-width: 2px; border-radius: 6mm; margin-bottom: 4mm; }
+      .bizname { font-size: 24pt; margin: 0 0 2mm; }
+      .cta { font-size: 18pt; padding: 5mm 8mm; margin: 4mm auto 8mm; max-width: 140mm; }
+      .qr-section { padding: 6mm; border-width: 2px; }
+      .qr-box { padding: 4mm; border-width: 2px; }
+      .qr-box img { width: 60mm; height: 60mm; }
+      .fineprint { font-size: 9.5pt; margin-top: 6mm; }
+    }
+  </style>
+  </style>
 </head>
 <body>
-  <div class="sheet">
-    <div class="head">
-      <% if (biz.showLogo && biz.logoUrl) { %>
-        <div class="logo"><img src="<%= biz.logoUrl %>" alt="Logo"/></div>
-      <% } %>
-      <div>
-        <div class="title"><%= biz.name %></div>
-        <div class="subtitle">Scan to write a <%= platform %> review in seconds</div>
-        <div class="welcome">Welcome — we'll help you craft a friendly, genuine review in seconds ✨</div>
-      </div>
-    </div>
+  <div class="editor-layout">
+    <section>
+      <form id="posterForm" method="post" action="/admin/ai/<%= biz.slug %>/poster">
+        <!-- Headline Settings -->
+        <div class="card">
+          <h3>1) Headline & Welcome</h3>
+          <label>Main Headline</label>
+          <input name="headline" type="text" value="<%= headline || '' %>" placeholder="Share Your Experience in Seconds"/>
+          <div class="hint">The large text that appears at the top of the poster.</div>
 
-    <!-- CTA bar (uses business colors) -->
-      <div class="cta">
-        <%= (typeof headline!=='undefined' && headline) ? headline : ('We’ll draft a short, friendly review — edit & post to '+platform+' — it only takes a minute!') %>
-      </div>
-
-    <div class="body">
-      <div class="panel">
-  <h2>AI Review Assistant ✨</h2>
-  <p>Open the assistant to get a short draft you can tweak, copy, and post in moments.</p>
-        <div class="qr">
-          <img src="/qr/ai/<%= biz.slug %>/<%= platform %>.png" alt="AI Review QR"/>
+          <label>Welcome Message</label>
+          <input name="welcome" type="text" value="<%= welcome || 'Welcome — we'll help you craft a friendly, genuine review in seconds ✨' %>" placeholder="Enter a friendly welcome message"/>
+          <div class="hint">A short welcome message that appears under the business name.</div>
         </div>
-  <div class="tip">Point your camera at the QR to start — we're here to make it quick and easy.</div>
-      </div>
-    </div>
 
-    <div class="foot">
-      <div><%= biz.publicFooter || 'Thanks for supporting local!' %></div>
-      <!-- <div><%= platform %> reviews</div> -->
-    </div>
+        <!-- QR Section -->
+        <div class="card">
+          <h3>2) QR Section</h3>
+          <label>Section Title</label>
+          <input name="qrTitle" type="text" value="<%= qrTitle || 'AI Review Assistant ✨' %>" placeholder="AI Review Assistant ✨"/>
+          
+          <label>Section Description</label>
+          <textarea name="qrDescription" placeholder="Open the assistant to get a short draft you can tweak, copy, and post in moments."><%= qrDescription || 'Open the assistant to get a short draft you can tweak, copy, and post in moments.' %></textarea>
+          
+          <label>QR Tip</label>
+          <input name="qrTip" type="text" value="<%= qrTip || 'Point your camera at the QR to start — we're here to make it quick and easy.' %>" placeholder="Point your camera at the QR to start — we're here to make it quick and easy."/>
+        </div>
+
+        <!-- Footer -->
+        <div class="card">
+          <h3>3) Footer</h3>
+          <label>Footer Text</label>
+          <input name="footer" type="text" value="<%= biz.publicFooter || 'Thanks for supporting local!' %>" placeholder="Thanks for supporting local!"/>
+          <div class="hint">A short message that appears at the bottom of the poster.</div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="card">
+          <button class="btn" type="submit">Save Changes</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="preview">
+      <div class="preview-head">
+        <strong>Live Preview</strong>
+        <div>
+          <a class="btn" href="/ai-poster/<%= biz.slug %>/<%= platform %>" target="_blank">Open</a>
+        </div>
+      </div>
+      <iframe id="posterFrame" src="/ai-poster/<%= biz.slug %>/<%= platform %>?ts=<%= Date.now() %>"></iframe>
+    </aside>
   </div>
+
+  <script>
+    const form = document.getElementById('posterForm');
+    const frame = document.getElementById('posterFrame');
+    
+    // Update preview when form changes
+    form.addEventListener('input', () => {
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+      
+      for (const [key, value] of formData.entries()) {
+        params.append(key, value);
+      }
+      
+      frame.src = `/ai-poster/<%= biz.slug %>/<%= platform %>?${params.toString()}&ts=${Date.now()}`;
+    });
+
+    // Refresh preview after save
+    form.addEventListener('submit', () => {
+      setTimeout(() => {
+        frame.src = `/ai-poster/<%= biz.slug %>/<%= platform %>?ts=${Date.now()}`;
+      }, 400);
+    });
+  </script>
 </body>
 </html>

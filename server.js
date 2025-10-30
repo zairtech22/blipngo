@@ -82,7 +82,6 @@ app.post('/business', basicAuth, async (req, res) => {
         tiktokUrl: nz(tiktokUrl),
         youtubeUrl: nz(youtubeUrl),
         googleReviewUrl: nz(googleReviewUrl), // editable later on AI page too
-        showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
         ctaBgColor: nz(ctaBgColor),
         ctaColor: nz(ctaColor),
@@ -158,7 +157,6 @@ app.post('/business/:slug/theme', basicAuth, async (req, res) => {
         publicSubtitle: nz(publicSubtitle),
         publicFooter: nz(publicFooter),
         ctaText: nz(ctaText),
-        showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
         logoUrl: nz(logoUrl),
 
