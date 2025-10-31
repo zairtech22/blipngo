@@ -1,155 +1,174 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Business QR App</title>
-    <link rel="stylesheet" href="/public/css/style.css?v=<%= Date.now() %>"/>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>Business QR Manager</h1>
-        <form method="post" action="/admin/regen-all">
-          <button class="secondary" type="submit">Regenerate All QRs</button>
-        </form>
-      </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Blipngo — Businesses</title>
+  <style>
+    :root{ --ink:#0A0A0A; --muted:#6b7280; --bg:#f6f7f8; --paper:#fff; --border:#e5e7eb; --brand:#111827; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
 
-      <div class="grid" style="grid-template-columns: 2fr 1.2fr;">
-        <div class="card">
-          <h2>Create a business</h2>
-          <form method="post" action="/business">
-            <div class="row">
-              <div>
-                <label>Business name</label>
-                <input type="text" name="name" required />
-              </div>
-              <div>
-                <label>Custom slug (optional)</label>
-                <input type="text" name="slug" placeholder="auto from name" />
-              </div>
-            </div>
+    header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border)}
+    h1{margin:0;font-size:18px}
+    .hint{color:var(--muted);font-size:12px}
+    .btn{border:2px solid #000;background:#fff;color:#000;padding:8px 12px;border-radius:10px;font-weight:700;text-decoration:none;display:inline-block;cursor:pointer}
+    .btn:hover{background:#000;color:#fff}
+    .btn.secondary{border-color:#888;color:#222}
+    .btn.danger{border-color:#b00;color:#b00}.btn.danger:hover{background:#b00;color:#fff}
 
-            <div class="row">
-              <div>
-                <label>Logo URL (optional)</label>
-                <input type="url" name="logoUrl" placeholder="https://..." />
-              </div>
-              <div>
-                <label>Poster Background Color - Business Theme Color</label>
-                <input type="color" name="brandColor" value="#FFD21E"/>
-              </div>
-            </div>
+    main{max-width:1100px;margin:0 auto;padding:20px;display:grid;gap:16px}
 
-            <div class="row">
-              <div>
-                <label>Public Title</label>
-                <input type="text" name="publicTitle" placeholder="Follow & Say Hi!"/>
-              </div>
-              <div>
-                <label>Public Subtitle (small line)</label>
-                <input type="text" name="publicSubtitle" placeholder="Comment, share, or show your post for a perk!"/>
-              </div>
-            </div>
+    .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
+    .card h3{margin:0 0 10px 0;font-size:16px}
 
-            <div class="row">
-              <div>
-                <label>Main CTA Text</label>
-                <input type="text" name="ctaText" placeholder="GET A FREE DRINK!"/>
-              </div>
-              <div>
-                <label>Footer / Fine Print</label>
-                <!-- fixed stray `%>` -->
-                <input type="text" name="publicFooter" placeholder="Powered By BlipNGo" />
-              </div>
-            </div>
+    /* Table */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{text-align:left;padding:10px 12px}
+    thead th{font-size:12px;color:var(--muted);font-weight:700}
+    tbody tr{background:#fff;border:1px solid var(--border)}
+    tbody tr td:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+    tbody tr td:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
 
-            <div class="row">
-              <div>
-                <label>QR Layout</label>
-                <select name="qrLayout">
-                  <!-- fixed `selected"` typo -->
-                  <option value="horizontal" selected>Horizontal (A / AA / AAA)</option>
-                  <option value="vertical">Vertical (stacked)</option>
-                </select>
-              </div>
-              <div>
-                <label>CTA Background Color</label>
-                <input type="color" name="ctaBgColor" value="#0A0A0A"/>
-              </div>
-            </div>
+    /* Register panel (hidden by default) */
+    .panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+    .panel-body{padding:16px;display:grid;gap:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;margin:6px 0 6px;font-weight:700}
+    input[type="text"],input[type="url"],input[type="color"],textarea,select{
+      width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font:inherit
+    }
+    textarea{resize:vertical;min-height:100px}
 
-            <div class="row">
-              <div>
-                <label>Instagram target URL</label>
-                <input type="url" name="instagramUrl" placeholder="https://www.instagram.com/p/..." />
-              </div>
-              <div>
-                <label>TikTok target URL</label>
-                <input type="url" name="tiktokUrl" placeholder="https://www.tiktok.com/..." />
-              </div>
-            </div>
+    .hidden{display:none}
+    .savebar{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:#fff}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>BlipNGo</h1>
+      <div class="hint">Online Reputation Managemnet in a blip.</div>
+    </div>
+    <div>
+      <button id="openRegister" class="btn" aria-expanded="false" aria-controls="registerPanel">Register Business</button>
+    </div>
+  </header>
 
-            <div class="row">
-              <div>
-                <label>YouTube target URL</label>
-                <input type="url" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..."/>
-              </div>
-              <div>
-                <!-- NEW: Google Reviews Write-a-Review link -->
-                <label>Google Reviews (Write a review) URL</label>
-                <input
-                  type="url"
-                  name="googleReviewUrl"
-                  placeholder="https://search.google.com/local/writereview?placeid=XXXXXXXXXXXX"
-                />
-                <small class="muted">Tip: use Google’s Place ID “Write a review” link for best UX.</small>
-              </div>
-            </div>
-
-            <div class="row" style="align-items:flex-end;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <label>Show Logo</label>
-                <input type="checkbox" name="showLogo" checked />
-              </div>
-              <div style="display:flex; align-items:flex-end; justify-content:flex-end; gap:8px;">
-                <button type="submit" style="margin-left:auto;">Create</button>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        <div class="card">
-          <h2>How it works</h2>
-          <ol class="small">
-            <li>Set <code>BASE_URL</code> in <code>.env</code> to your LAN IP or tunnel URL.</li>
-            <li>Create a business with links &amp; theme color.</li>
-            <li>QRs encode stable URLs like <code>/r/&lt;slug&gt;/instagram</code>, <code>/r/&lt;slug&gt;/tiktok</code>, <code>/r/&lt;slug&gt;/youtube</code>, <code>/r/&lt;slug&gt;/google</code> (images at <code>/qr/&lt;slug&gt;/{platform}.png</code>).</li>
-            <li>Print the poster page: <code>/p/&lt;slug&gt;</code> (or <code>?print=1</code> / <code>?kiosk=1</code>).</li>
-            <li>Update weekly post links anytime; QRs stay the same.</li>
-          </ol>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <h2>Businesses</h2>
+  <main>
+    <!-- Business list first -->
+    <section class="card">
+      <h3>Registered Business</h3>
+      <% if (!businesses || businesses.length === 0) { %>
+        <div class="hint">No businesses yet. Click “Register Business” to add your first one.</div>
+      <% } else { %>
         <table>
-          <thead><tr><th>Name</th><th>Slug</th><th>Poster</th><th>Admin</th></tr></thead>
+          <thead>
+          <tr>
+            <th style="width:28%">Name</th>
+            <th style="width:22%">Slug</th>
+            <th style="width:22%">Created</th>
+            <th style="width:28%">Actions</th>
+          </tr>
+          </thead>
           <tbody>
-            <% if (businesses.length === 0) { %>
-              <tr><td colspan="4" class="small">No businesses yet. Create one above.</td></tr>
-            <% } %>
-            <% businesses.forEach(b => { %>
-              <tr>
-                <td><%= b.name %></td>
-                <td><code><%= b.slug %></code></td>
-                <td><a href="/p/<%= b.slug %>" target="_blank">View</a></td>
-                <td><a href="/business/<%= b.slug %>">Manage</a></td>
-              </tr>
-            <% }) %>
+          <% businesses.forEach(b => { %>
+            <tr>
+              <td><strong><%= b.name %></strong></td>
+              <td><code><%= b.slug %></code></td>
+              <td><%= new Date(b.createdAt).toLocaleString() %></td>
+              <td>
+                <div class="actions">
+                  <a class="btn" href="/business/<%= b.slug %>">Manage</a>
+                  <a class="btn secondary" href="/p/<%= b.slug %>" target="_blank">Public</a>
+                  <form method="post" action="/business/<%= b.slug %>/delete" onsubmit="return confirm('Delete this business?')">
+                    <button class="btn danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
           </tbody>
         </table>
+      <% } %>
+    </section>
+
+    <!-- Hidden Register panel -->
+    <section id="registerPanel" class="panel hidden" aria-hidden="true">
+      <div class="panel-head">
+        <strong>Register a New Business</strong>
+        <button id="closeRegister" class="btn secondary" aria-label="Close register form">Close</button>
       </div>
+      <form method="post" action="/business">
+        <div class="panel-body">
+          <div class="row">
+            <div>
+              <label>Business Name</label>
+              <input required name="name" type="text" placeholder="Blazin Halal"/>
+            </div>
+            <div>
+              <label>Custom Slug (optional)</label>
+              <input name="slug" type="text" placeholder="blazin-halal"/>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Logo URL</label>
+              <input name="logoUrl" type="url" placeholder="https://…/logo.png"/>
+            </div>
+            <div>
+              <label>Poster Background Color</label>
+              <input name="brandColor" type="text" value="#FFD21E"/>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Instagram URL</label>
+              <input name="instagramUrl" type="url" placeholder="https://instagram.com/…"/>
+            </div>
+            <div>
+              <label>TikTok URL</label>
+              <input name="tiktokUrl" type="url" placeholder="https://tiktok.com/@…"/>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>YouTube URL</label>
+              <input name="youtubeUrl" type="url" placeholder="https://youtube.com/@…"/>
+            </div>
+            <div>
+              <label>Google Review URL</label>
+              <input name="googleReviewUrl" type="url" placeholder="https://search.google.com/local/writereview?placeid=…"/>
+            </div>
+          </div>
+
+          <div>
+            <label>Steps (one per line)</label>
+            <textarea name="steps" placeholder="Scan the QR&#10;Follow us on IG/TikTok/YouTube&#10;Show screen to staff for perk"></textarea>
+          </div>
+
+          <input type="hidden" name="showLogo" value="on"/>
+          <input type="hidden" name="qrLayout" value="vertical"/>
+          <input type="hidden" name="ctaBgColor" value="#0A0A0A"/>
+        </div>
+        <div class="savebar">
+          <button class="btn" type="submit">Create Business</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const openBtn = document.getElementById('openRegister');
+      const closeBtn = document.getElementById('closeRegister');
+      const panel   = document.getElementById('registerPanel');
 
       <div class="footer">© <script>document.write(new Date().getFullYear())</script> BlipNGo</div>
     </div>

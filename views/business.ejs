@@ -4,15 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= biz.name %> — Manage Poster</title>
+
   <style>
     :root{ --ink:#0A0A0A; --muted:#6b7280; --bg:#fafafa; --paper:#fff; --brand:<%= biz.brandColor || '#FFD21E' %>; --border:#e5e7eb; }
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; background:#f6f7f8; color:#111; }
-    header{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20; }
+    header{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; background:#fff; border-bottom:1px solid var(--border); }
     .h-left h1{margin:0; font-size:18px} .slug{color:var(--muted); font-weight:600}
     .actions{display:flex; gap:8px; flex-wrap:wrap}
-    .btn{ border:2px solid #000; background:#fff; color:#000; padding:8px 12px; border-radius:10px; font-weight:700; text-decoration:none; display:inline-block; }
+    .btn{ border:2px solid #000; background:#fff; color:#000; padding:8px 12px; border-radius:10px; font-weight:700; text-decoration:none; }
     .btn:hover{background:#000; color:#fff}
     .btn.secondary{border-color:#888; color:#222}
     .btn.danger{border-color:#b00; color:#b00}.btn.danger:hover{background:#b00; color:#fff}
@@ -24,23 +24,16 @@
     .card h3{margin:0 0 10px 0; font-size:16px}
     .hint{color:var(--muted); font-size:12px; margin:6px 0 0}
     label{display:block; font-weight:700; margin:10px 0 6px}
-    input[type="text"], input[type="url"], input[type="color"], input[type="number"], textarea, select{
+    input[type="text"], input[type="url"], input[type="color"], textarea, select{
       width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:10px; background:#fff; font:inherit;
     }
     textarea{resize:vertical; min-height:120px}
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
-    .inline{display:flex; align-items:center; gap:10px}
-    .switch{display:flex; align-items:center; gap:10px; margin:6px 0}
-    .brand-swatch{width:100%; height:14px; border-radius:6px; background:var(--brand); border:1px solid #000}
-    .savebar{ position:sticky; bottom:0; padding:10px 18px; background:#ffffffd9; backdrop-filter:saturate(1.1) blur(2px); border:1px solid var(--border); border-radius:12px; display:flex; justify-content:flex-end; gap:10px; }
-
-    /* Preview */
     .preview{ background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; display:grid; grid-template-rows:auto 1fr; }
-    .preview-head{display:flex; gap:8px; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--border)}
-    .preview-controls{display:flex; gap:8px; align-items:center}
-    .chip{display:inline-block; padding:6px 10px; border:1px solid #000; border-radius:999px; font-weight:700; background:#fff; cursor:pointer}
-    .chip.active{background:#000; color:#fff}
     iframe{width:100%; height:calc(100vh - 170px); border:0; background:#f1f5f9}
+    .preview-head{display:flex; gap:8px; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--border)}
+    .preview-controls .chip{padding:6px 10px; border:1px solid #000; border-radius:999px; font-weight:700; cursor:pointer}
+    .chip.active{background:#000; color:#fff}
   </style>
 </head>
 <body>
@@ -198,28 +191,61 @@
           <button class="chip" id="printBtn">Print</button>
         </div>
       </div>
-      <iframe id="posterFrame" src="/p/<%= biz.slug %>?ts=<%= Date.now() %>" title="Poster Preview"></iframe>
-    </aside>
-  </main>
 
-  <script>
-    // Preview controls
-    const form = document.getElementById('themeForm');
-    const frame = document.getElementById('posterFrame');
-    const a4Btn = document.getElementById('a4Btn');
-    const ltrBtn = document.getElementById('letterBtn');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const printBtn = document.getElementById('printBtn');
-    const setActive = btn => [a4Btn,ltrBtn].forEach(b=>b.classList.toggle('active', b===btn));
+      <!-- 2) CTA -->
+      <div class="card">
+        <h3>2) CTA</h3>
+        <label>CTA Text</label>
+        <input name="ctaText" type="text" value="<%= biz.ctaText || '' %>"/>
 
-    a4Btn.addEventListener('click', e=>{e.preventDefault(); setActive(a4Btn); sendToPoster({type:'setFormat', payload:'a4'})});
-    ltrBtn.addEventListener('click', e=>{e.preventDefault(); setActive(ltrBtn); sendToPoster({type:'setFormat', payload:'letter'})});
-    refreshBtn.addEventListener('click', e=>{e.preventDefault(); frame.src = '/p/<%= biz.slug %>?ts=' + Date.now(); });
-    printBtn.addEventListener('click', e=>{e.preventDefault(); sendToPoster({type:'print'})});
-    function sendToPoster(msg){ frame.contentWindow?.postMessage(msg, window.location.origin); }
+        <label>CTA Text Color</label>
+        <input name="ctaColor" type="color" value="<%= biz.ctaColor || '#EDC400' %>"/>
 
-    // Auto-refresh preview shortly after save
-    form.addEventListener('submit', ()=> setTimeout(()=>{ frame.src = '/p/<%= biz.slug %>?ts=' + Date.now(); }, 400));
-  </script>
+        <label>CTA Background Color</label>
+        <input name="ctaBgColor" type="color" value="<%= biz.ctaBgColor || '#0A0A0A' %>"/>
+      </div>
+
+      <!-- 3) SOCIAL LINKS -->
+      <div class="card">
+        <h3>3) Social Platforms</h3>
+
+        <label>Instagram URL</label>
+        <input name="instagramUrl" type="url" value="<%= biz.instagramUrl || '' %>"/>
+
+        <label>TikTok URL</label>
+        <input name="tiktokUrl" type="url" value="<%= biz.tiktokUrl || '' %>"/>
+
+        <label>YouTube Shorts URL</label>
+        <input name="youtubeUrl" type="url" value="<%= biz.youtubeUrl || '' %>"/>
+
+      </div>
+
+      <!-- SAVE -->
+      <div class="card">
+        <button class="btn" type="submit">Save Changes</button>
+      </div>
+
+    </form>
+  </section>
+
+  <aside class="preview">
+    <div class="preview-head">
+      <strong>Live Preview</strong>
+    </div>
+    <iframe id="posterFrame" src="/p/<%= biz.slug %>?ts=<%= Date.now() %>"></iframe>
+  </aside>
+</main>
+
+<script>
+  const form = document.getElementById('themeForm');
+  const frame = document.getElementById('posterFrame');
+
+  form.addEventListener('submit', () => {
+    setTimeout(() => {
+      frame.src = '/p/<%= biz.slug %>?ts=' + Date.now();
+    }, 400);
+  });
+</script>
+
 </body>
 </html>

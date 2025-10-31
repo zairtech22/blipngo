@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title><%= biz.name %> — AI Review Admin</title>
+<style>
+  :root{
+    --ink:#0A0A0A;
+    --muted:#6b7280;
+    --bg:#f8fafc;
+    --paper:#fff;
+    --border:#e5e7eb;
+    --brand:#0A0A0A;
+    --cta:#0A0A0A;
+    --cta-fg:#fff;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.5;
+  }
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 24px;background:#fff;border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:20;box-shadow:var(--shadow);
+  }
+  h1{margin:0;font-size:20px;letter-spacing:-0.01em}
+  .hint{color:var(--muted);font-size:13px}
+  .btn{
+    border:1px solid transparent;background:var(--brand);color:#fff;
+    padding:10px 16px;border-radius:8px;font-weight:600;text-decoration:none;
+    display:inline-block;cursor:pointer;transition:all .2s ease;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .btn.secondary{background:#fff;border:1px solid var(--border);color:var(--ink)}
+  .btn.secondary:hover{background:#f8fafc}
+
+  main{max-width:1400px;margin:0 auto;padding:24px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab-btn{
+    border:1px solid var(--border);background:#fff;color:var(--ink);
+    padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer
+  }
+  .tab-btn.active{background:#000;color:#fff;border-color:#000}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  .card{
+    background:#fff;border:1px solid var(--border);border-radius:12px;
+    padding:20px;box-shadow:var(--shadow);transition:box-shadow .2s ease;
+    margin-bottom:14px;
+  }
+  .lead{color:var(--muted);font-size:14px;margin-bottom:16px;line-height:1.5}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:900px){ .row{grid-template-columns:1fr} }
+  label{display:block;font-weight:600;margin:12px 0 8px;color:var(--ink)}
+  input[type="text"],input[type="url"],textarea,select,input[type="number"]{
+    width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font:inherit;transition:all .2s ease
+  }
+  input[type="text"]:focus,input[type="url"]:focus,textarea:focus,select:focus,input[type="number"]:focus{
+    outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgb(0 0 0 / 0.1)
+  }
+  textarea{resize:vertical;min-height:120px}
+  .savebar{
+    background:#ffffffee;border:1px solid var(--border);border-radius:12px;
+    padding:12px;display:flex;justify-content:flex-end;gap:12px;box-shadow:var(--shadow)
+  }
+
+  /* Poster Editor split */
+  .editor-split{display:grid;grid-template-columns:520px 1fr;gap:20px}
+  @media (max-width:1100px){ .editor-split{grid-template-columns:1fr} }
+
+  /* Preview */
+  .preview{
+    background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    display:grid;grid-template-rows:auto 1fr
+  }
+  .preview-head{
+    display:flex;gap:8px;align-items:center;justify-content:space-between;
+    padding:10px 12px;border-bottom:1px solid var(--border);background:#fff
+  }
+  .preview-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .preview-iframe{width:100%;height:calc(100vh - 170px);border:0;background:#f1f5f9}
+
+  /* Form Editor */
+  .form-toolbar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:10px}
+  .form-iframe{width:100%;height:calc(100vh - 220px);border:1px solid var(--border);border-radius:12px;background:#fff}
+</style>
+</head>
+<body>
+<%
+  /* Ensure cfg exists (route should send it, but guard anyway) */
+  if (typeof cfg === 'undefined' || !cfg) { cfg = { platform:'google' }; }
+
+  /* ---------- NORMALIZE INPUTS for preview tabs ---------- */
+  const _platform      = (typeof platform      !== 'undefined' && platform)      ? platform      : (cfg.platform || 'google');
+  const _headline      = (typeof headline      !== 'undefined')                  ? headline      : (cfg.headline || '');
+  const _disclaimer    = (typeof disclaimer    !== 'undefined')                  ? disclaimer    : (cfg.disclaimer || '');
+  const _defaultTone   = (typeof defaultTone   !== 'undefined')                  ? defaultTone   : (cfg.defaultTone || '');
+  const _defaultLength = (typeof defaultLength !== 'undefined')                  ? defaultLength : (cfg.defaultLength || '');
+  const _llmEnabled    = (typeof llmEnabled    !== 'undefined')                  ? !!(+llmEnabled) : !!cfg.llmEnabled;
+  const _llmProvider   = (typeof llmProvider   !== 'undefined')                  ? llmProvider   : (cfg.llmProvider || '');
+  const _llmModel      = (typeof llmModel      !== 'undefined')                  ? llmModel      : (cfg.llmModel || '');
+  const _llmTemp       = (typeof llmTemp       !== 'undefined')                  ? llmTemp       : (typeof cfg.llmTemp !== 'undefined' ? cfg.llmTemp : '');
+  const _llmSystem     = (typeof llmSystem     !== 'undefined')                  ? llmSystem     : (cfg.llmSystem || '');
+  const _targetUrl     = (typeof targetUrl     !== 'undefined')                  ? targetUrl     : null;
+
+  /* Poster-copy defaults (used by Poster Editor preview) */
+  const _welcome       = (typeof welcome       !== 'undefined') ? welcome       : (cfg.welcome       || '');
+  const _qrTitle       = (typeof qrTitle       !== 'undefined') ? qrTitle       : (cfg.qrTitle       || '');
+  const _qrDescription = (typeof qrDescription !== 'undefined') ? qrDescription : (cfg.qrDescription || '');
+  const _qrTip         = (typeof qrTip         !== 'undefined') ? qrTip         : (cfg.qrTip         || '');
+  const _publicFooter  = (typeof publicFooter  !== 'undefined') ? publicFooter  : (biz.publicFooter || '');
+
+  /* Safe defaults (double-quoted so apostrophes are ok) */
+  const DEF_WELCOME = "Welcome — we'll help you craft a friendly, genuine review in seconds ✨";
+  const DEF_QRTIP   = "Point your camera at the QR to start — we'll make it quick and easy.";
+  const DEF_QR_DESC = "Open the assistant to get a short draft you can tweak, copy, and post in moments.";
+  const DEF_HEADLINE= "We'll draft it for you — edit & paste";
+%>
+
+<header>
+  <div>
+    <h1><strong><%= biz.name %></strong> <span class="hint">/ AI Reviews</span></h1>
+    <div class="hint">Tabbed admin: Settings, Poster Editor, Form Editor.</div>
+  </div>
+  <div>
+    <a class="btn secondary" href="/business/<%= biz.slug %>">Back</a>
+    <a class="btn secondary" href="/">All</a>
+  </div>
+</header>
+
+<main>
+  <!-- TAB HEADERS -->
+  <div class="tabs" role="tablist" aria-label="AI Admin Tabs">
+    <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false" aria-controls="panel-settings">Settings</button>
+    <button class="tab-btn active" data-tab="poster" role="tab" aria-selected="true" aria-controls="panel-poster">Poster Editor</button>
+    <button class="tab-btn" data-tab="form" role="tab" aria-selected="false" aria-controls="panel-form">Form Editor</button>
+  </div>
+
+  <!-- TAB: SETTINGS -->
+  <section id="panel-settings" class="tab-panel" role="tabpanel" aria-labelledby="tab-settings">
+    <!-- Poster Settings (own save) -->
+    <form id="settingsForm" method="post" action="/admin/ai/<%= biz.slug %>/save-poster" class="card" style="margin:0 0 16px">
+      <h3 style="margin:0 0 12px">Poster Settings</h3>
+      <div class="row">
+        <div>
+          <label>Platform</label>
+          <select name="platform">
+            <option value="google" <%= (cfg.platform === 'google') ? 'selected' : '' %>>Google</option>
+          </select>
+          <div class="hint">Single platform per AI poster.</div>
+        </div>
+        <div>
+          <label>Google Review Link</label>
+          <input name="googleReviewUrl" type="url" value="<%= _targetUrl || '' %>" placeholder="https://search.google.com/local/writereview?placeid=XXXX"/>
+          <div class="hint">Paste the direct 'Write a review' URL.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Disclaimer</label>
+          <input name="disclaimer" type="text" value="<%= cfg.disclaimer || '' %>" placeholder="Reviews are optional and appreciated."/>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Default Tone</label>
+          <select name="defaultTone">
+            <option value=""            <%= (!cfg.defaultTone) ? 'selected' : '' %>>(none)</option>
+            <option value="friendly"     <%= (cfg.defaultTone === 'friendly') ? 'selected' : '' %>>Friendly</option>
+            <option value="professional" <%= (cfg.defaultTone === 'professional') ? 'selected' : '' %>>Professional</option>
+            <option value="enthusiastic" <%= (cfg.defaultTone === 'enthusiastic') ? 'selected' : '' %>>Enthusiastic</option>
+          </select>
+        </div>
+        <div>
+          <label>Default Length</label>
+          <select name="defaultLength">
+            <option value=""       <%= (!cfg.defaultLength) ? 'selected' : '' %>>(none)</option>
+            <option value="short"  <%= (cfg.defaultLength === 'short')  ? 'selected' : '' %>>Short</option>
+            <option value="medium" <%= (cfg.defaultLength === 'medium') ? 'selected' : '' %>>Medium</option>
+            <option value="long"   <%= (cfg.defaultLength === 'long')   ? 'selected' : '' %>>Long</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="savebar" style="margin-top:12px">
+        <button class="btn" type="submit">Save Poster Settings</button>
+      </div>
+    </form>
+
+    <!-- LLM (optional) (own save) -->
+    <form id="llmForm" method="post" action="/admin/ai/<%= biz.slug %>/save-llm" class="card" style="margin:0">
+      <h3 style="margin:0 0 12px">LLM (optional)</h3>
+      <div class="lead">Use an LLM to draft suggested reviews automatically.</div>
+
+      <div class="row" style="align-items:center">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="switch <%= cfg.llmEnabled ? 'on' : '' %>" id="llmSwitch"
+               style="width:44px;height:24px;background:<%= cfg.llmEnabled ? '#0A0A0A' : '#e6e7eb' %>;border-radius:999px;position:relative;display:inline-block;cursor:pointer">
+            <div class="knob" id="llmKnob" style="position:absolute;top:3px;left:<%= cfg.llmEnabled ? '23px' : '3px' %>;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .18s"></div>
+          </div>
+          <strong>Enable LLM</strong>
+        </div>
+        <div></div>
+      </div>
+      <input type="hidden" name="llmEnabled" value="<%= cfg.llmEnabled ? '1' : '0' %>" id="llmEnabledInput" />
+
+      <div id="llmRows" style="<%= cfg.llmEnabled ? '' : 'opacity:.45;pointer-events:none' %>">
+        <div class="row">
+          <div>
+            <label>Provider</label>
+            <input name="llmProvider" type="text" value="<%= cfg.llmProvider || '' %>" placeholder="openai"/>
+          </div>
+          <div>
+            <label>Model</label>
+            <input name="llmModel" type="text" value="<%= cfg.llmModel || '' %>" placeholder="gpt-4o-mini"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Temperature</label>
+            <input name="llmTemp" type="number" step="0.1" min="0" max="1" value="<%= (typeof cfg.llmTemp==='number') ? cfg.llmTemp : '' %>"/>
+          </div>
+          <div></div>
+        </div>
+
+        <label>System Prompt</label>
+        <textarea name="llmSystem" placeholder="You are a helpful assistant that drafts sincere customer feedback…"><%= cfg.llmSystem || '' %></textarea>
+      </div>
+
+      <div class="savebar" style="margin-top:12px">
+        <button class="btn" type="submit">Save LLM Settings</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- TAB: POSTER EDITOR -->
+  <section id="panel-poster" class="tab-panel active" role="tabpanel" aria-labelledby="tab-poster">
+    <div class="editor-split">
+      <!-- Poster Copy -->
+      <form id="posterCopyForm" method="post" action="/admin/ai/<%= biz.slug %>/poster" class="card" style="margin:0">
+        <h3>Poster Copy (public-facing)</h3>
+        <label>Welcome Message</label>
+        <input name="welcome" type="text" value="<%= _welcome || DEF_WELCOME %>" placeholder="Friendly welcome text"/>
+        
+        <label>Poster Headline</label>
+        <input name="headline" type="text" value="<%= _headline || DEF_HEADLINE %>" placeholder="We'll draft it for you — edit & paste"/>
+
+        <div class="row">
+          <div>
+            <label>QR Section Title</label>
+            <input name="qrTitle" type="text" value="<%= _qrTitle || 'AI Review Assistant ✨' %>" placeholder="AI Review Assistant ✨"/>
+          </div>
+          <div>
+            <label>QR Tip</label>
+            <input name="qrTip" type="text" value="<%= _qrTip || DEF_QRTIP %>" placeholder="Short scanning tip"/>
+          </div>
+        </div>
+
+        <label>QR Section Description</label>
+        <textarea name="qrDescription" placeholder="Open the assistant to get a short draft you can tweak, copy, and post in moments."><%= _qrDescription || DEF_QR_DESC %></textarea>
+
+        <label>Footer Text</label>
+        <input name="footer" type="text" value="<%= _publicFooter || 'Thanks for supporting local!' %>" placeholder="Thanks for supporting local!"/>
+
+        <div class="savebar" style="position:static;margin-top:12px">
+          <button class="btn" type="submit">Save Poster Copy</button>
+        </div>
+      </form>
+
+      <!-- Live Poster Preview -->
+      <aside>
+        <div class="preview">
+          <div class="preview-head">
+            <div style="display:flex;align-items:center;gap:8px">
+              <strong>Live Poster Preview</strong>
+            </div>
+            <div class="preview-actions">
+              <a class="btn secondary" id="openPosterBtn" target="_blank" href="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1">Open Poster</a>
+              <button class="btn secondary" id="refreshPosterBtn" type="button">Refresh</button>
+              <button class="btn secondary" id="downloadQrBtn" type="button">Download QR</button>
+              <button class="btn secondary" id="copyPosterBtn" type="button">Copy Poster URL</button>
+            </div>
+          </div>
+          <iframe id="posterFrame" class="preview-iframe" src="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1&ts=<%= Date.now() %>"></iframe>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- TAB: FORM EDITOR -->
+  <section id="panel-form" class="tab-panel" role="tabpanel" aria-labelledby="tab-form">
+    <div class="card" style="margin-bottom:14px">
+      <div class="row">
+        <div>
+          <label>Platform</label>
+          <!-- Shadow platform control here mirrors Settings selection -->
+          <select id="platformMirror">
+            <option value="google" <%= (_platform==='google'?'selected':'') %>>Google</option>
+          </select>
+          <div class="hint">Form and URLs below reflect the selected platform.</div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="form-toolbar">
+      <a class="btn secondary" id="openFormBtn2" target="_blank" href="/ai-review/<%= biz.slug %>?platform=<%= _platform %>">Open Form</a>
+      <button class="btn secondary" id="refreshFormBtn" type="button">Refresh</button>
+      <button class="btn secondary" id="copyFormBtn2" type="button">Copy Form URL</button>
+    </div>
+    <iframe id="formFrame" class="form-iframe" src="/ai-review/<%= biz.slug %>?platform=<%= _platform %>&embed=1"></iframe>
+  </section>
+</main>
+
+<script>
+(function(){
+  try{
+    /* ---------- Tab wiring ---------- */
+    var tabs = document.querySelectorAll('.tab-btn');
+    var panels = {
+      settings: document.getElementById('panel-settings'),
+      poster:   document.getElementById('panel-poster'),
+      form:     document.getElementById('panel-form')
+    };
+    function activateTab(name){
+      tabs.forEach(function(b){
+        var isActive = b.dataset.tab === name;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      Object.keys(panels).forEach(function(k){
+        panels[k].classList.toggle('active', k===name);
+      });
+    }
+    tabs.forEach(function(b){
+      b.addEventListener('click', function(){
+        activateTab(b.dataset.tab);
+      });
+    });
+    // Default to Poster tab
+    activateTab('poster');
+
+    /* ---------- Elements shared ---------- */
+    var settingsForm   = document.getElementById('settingsForm');
+    var llmForm        = document.getElementById('llmForm');
+    var posterCopyForm = document.getElementById('posterCopyForm');
+
+    // Platform selects
+    var platformSelect = settingsForm ? settingsForm.querySelector('select[name="platform"]') : null;
+    var platformMirror = document.getElementById('platformMirror');
+
+    var bizSlug = '<%= biz.slug %>';
+
+    /* ---------- Preview (Poster Editor) ---------- */
+    var frame            = document.getElementById('posterFrame');
+    var openPosterBtn    = document.getElementById('openPosterBtn');
+    var refreshPosterBtn = document.getElementById('refreshPosterBtn');
+    var downloadQrBtn    = document.getElementById('downloadQrBtn');
+    var copyPosterBtn    = document.getElementById('copyPosterBtn');
+
+    function currentPlatform(){
+      if(platformSelect) return platformSelect.value;
+      if(platformMirror) return platformMirror.value;
+      return '<%= _platform %>';
+    }
+
+    function buildPreviewUrl(){
+      var base = '/ai-poster/' + bizSlug + '/' + currentPlatform();
+      var url = new URL(base, window.location.origin);
+
+      if(settingsForm){
+        var fd1 = new FormData(settingsForm);
+        fd1.forEach(function(v,k){
+          if(k==='platform') return;
+          var val = (v==null) ? '' : String(v).trim();
+          if(val) url.searchParams.set(k, val);
+        });
+      }
+      if(posterCopyForm){
+        var fd2 = new FormData(posterCopyForm);
+        fd2.forEach(function(v,k){
+          var val = (v==null) ? '' : String(v).trim();
+          if(val) url.searchParams.set(k, val);
+        });
+      }
+      url.searchParams.set('embed','1');
+      url.searchParams.set('ts', Date.now());
+      return url.toString();
+    }
+
+    function currentPosterUrlNoTs(){
+      var u = new URL(buildPreviewUrl(), window.location.origin);
+      u.searchParams.delete('ts');
+      return u.toString();
+    }
+
+    function currentFormUrl(){
+      return '/ai-review/' + bizSlug + '?platform=' + encodeURIComponent(currentPlatform());
+    }
+
+    function refreshPreview(){
+      if(frame) frame.src = buildPreviewUrl();
+      if(openPosterBtn) try{ openPosterBtn.href = currentPosterUrlNoTs(); }catch(e){}
+      // Also sync Form tab controls
+      syncFormTabUrls();
+    }
+
+    async function copyToClipboard(btn, text, label){
+      try{
+        await navigator.clipboard.writeText(text);
+        var old = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function(){ btn.textContent = label; }, 900);
+      }catch(e){
+        alert('Copy failed — copy manually.');
+      }
+    }
+
+    async function downloadQr(){
+      try{
+        var p = currentPlatform();
+        var qrUrl = '/qr/ai/' + bizSlug + '/' + p + '.png?ts=' + Date.now();
+        var response = await fetch(qrUrl);
+        var blob = await response.blob();
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = bizSlug + '-' + p + '-qr.png';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }catch(err){
+        console.error('Failed to download QR code:', err);
+        alert('Failed to download QR code. Please try again.');
+      }
+    }
+
+    // Debounced live update on any input in settings or poster copy
+    var debounce;
+    function onAnyInput(){
+      clearTimeout(debounce);
+      debounce = setTimeout(refreshPreview, 140);
+    }
+    if(settingsForm)    settingsForm.addEventListener('input', onAnyInput);
+    if(posterCopyForm)  posterCopyForm.addEventListener('input', onAnyInput);
+
+    if(settingsForm){
+      settingsForm.addEventListener('submit', function(){
+        setTimeout(function(){ refreshPreview(); }, 350);
+      });
+    }
+    if(posterCopyForm){
+      posterCopyForm.addEventListener('submit', function(){
+        setTimeout(function(){ refreshPreview(); }, 350);
+      });
+    }
+
+    if(refreshPosterBtn) refreshPosterBtn.addEventListener('click', refreshPreview);
+    if(copyPosterBtn)    copyPosterBtn.addEventListener('click', function(){ copyToClipboard(copyPosterBtn, currentPosterUrlNoTs(), 'Copy Poster URL'); });
+    if(downloadQrBtn)    downloadQrBtn.addEventListener('click', downloadQr);
+
+    /* ---------- LLM toggle (Settings tab) ---------- */
+    var llmSwitch       = document.getElementById('llmSwitch');
+    var llmKnob         = document.getElementById('llmKnob');
+    var llmEnabledInput = document.getElementById('llmEnabledInput');
+    var llmRows         = document.getElementById('llmRows');
+
+    function setLlm(enabled){
+      if(!llmSwitch || !llmEnabledInput || !llmRows) return;
+      llmEnabledInput.value = enabled ? '1' : '0';
+      llmSwitch.style.background = enabled ? '#0A0A0A' : '#e6e7eb';
+      if(llmKnob) llmKnob.style.left = enabled ? '23px' : '3px';
+      llmRows.style.opacity = enabled ? '1' : '.45';
+      llmRows.style.pointerEvents = enabled ? 'auto' : 'none';
+    }
+    if(llmSwitch){
+      llmSwitch.addEventListener('click', function(){
+        setLlm(llmEnabledInput.value !== '1');
+      });
+    }
+
+    /* ---------- Form Editor tab ---------- */
+    var formFrame     = document.getElementById('formFrame');
+    var openFormBtn2  = document.getElementById('openFormBtn2');
+    var copyFormBtn2  = document.getElementById('copyFormBtn2');
+    var refreshFormBtn= document.getElementById('refreshFormBtn');
+
+    function syncFormTabUrls(){
+      var url = currentFormUrl();
+      if(openFormBtn2) openFormBtn2.href = url;
+      if(formFrame){
+        var u = new URL(url, window.location.origin);
+        u.searchParams.set('embed','1');
+        formFrame.src = u.toString();
+      }
+    }
+
+    if(refreshFormBtn) refreshFormBtn.addEventListener('click', syncFormTabUrls);
+    if(copyFormBtn2)   copyFormBtn2.addEventListener('click', function(){ copyToClipboard(copyFormBtn2, currentFormUrl(), 'Copy Form URL'); });
+
+    // Platform mirroring between Settings and Form tabs
+    function onPlatformChange(){
+      // Keep mirror/selects in sync both ways
+      if(platformMirror && platformMirror.value !== currentPlatform()){
+        platformMirror.value = currentPlatform();
+      }
+      refreshPreview();
+    }
+    if(platformSelect){
+      platformSelect.addEventListener('change', onPlatformChange);
+    }
+    if(platformMirror){
+      platformMirror.addEventListener('change', function(){
+        if(platformSelect && platformSelect.value !== platformMirror.value){
+          platformSelect.value = platformMirror.value;
+          var evt = new Event('change', { bubbles:true });
+          platformSelect.dispatchEvent(evt);
+        }else{
+          refreshPreview();
+        }
+      });
+    }
+
+    // Initial hydration
+    refreshPreview();
+    syncFormTabUrls();
+    setLlm(<%= cfg.llmEnabled ? 'true' : 'false' %>);
+  }catch(err){
+    console.error('AI admin init error', err);
+  }
+})();
+</script>
+</body>
+</html>
