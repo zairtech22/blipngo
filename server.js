@@ -304,93 +304,122 @@ async function ensureAiConfig(bizId) {
   return cfg;
 }
 
-// === UPDATED === Admin UI to edit AI poster settings (render the editor shell)
-// Pass top-level vars the editor expects (platform, headline, etc.)
+// === FIXED === Admin UI to edit AI poster settings (render the editor shell)
 app.get('/admin/ai/:slug', basicAuth, async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Business not found');
 
-  const cfg = await ensureAiConfig(biz.id);
+  const cfg = await ensureAiConfig(biz.id); // ensures a row with defaults
   const platform = String(req.query.platform || cfg.platform || 'google').toLowerCase();
+
+  // prefer config googleReviewUrl; fall back to Business
+  const targetUrl = cfg.googleReviewUrl || biz.googleReviewUrl || null;
 
   res.render('ai_admin', {
     biz,
     BASE_URL,
+    cfg,                 // <- optional, but handy if EJS checks typeof cfg !== 'undefined'
     platform,
-    // Editor form defaults:
-    headline: cfg.headline || '',
-    welcome: cfg.welcome || null,
-    qrTitle: cfg.qrTitle || 'AI Review Assistant ✨',
+    // Poster / settings values
+    targetUrl,
+    headline:      cfg.headline      || '',
+    disclaimer:    cfg.disclaimer    || '',
+    defaultTone:   cfg.defaultTone   || '',
+    defaultLength: cfg.defaultLength || '',
+    // Poster copy values
+    welcome:       cfg.welcome       || '',
+    qrTitle:       cfg.qrTitle       || 'AI Review Assistant ✨',
     qrDescription: cfg.qrDescription || 'Open the assistant to get a short draft you can tweak, copy, and post in moments.',
-    qrTip: cfg.qrTip || 'Point your camera at the QR to start — we\'re here to make it quick and easy.'
+    qrTip:         cfg.qrTip         || "Point your camera at the QR to start — we're here to make it quick and easy.",
+    // LLM settings (mirrors the Settings tab)
+    llmEnabled:  !!cfg.llmEnabled,
+    llmProvider:  cfg.llmProvider || '',
+    llmModel:     cfg.llmModel    || '',
+    llmSystem:    cfg.llmSystem   || '',
+    llmTemp:      typeof cfg.llmTemp === 'number' ? cfg.llmTemp : ''
   });
 });
 
-// Save AI settings (+ editable Google link with history log)
-app.post('/admin/ai/:slug/save', basicAuth, async (req, res) => {
+// Save "Poster Settings" only (platform, google link, defaults, disclaimer)
+app.post('/admin/ai/:slug/save-poster', basicAuth, async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Business not found');
 
+  const cfg = await ensureAiConfig(biz.id);
+
+  // Pull only poster fields from the form
   const {
     platform,
     defaultTone,
     defaultLength,
     headline,
     disclaimer,
+    googleReviewUrl,
+  } = req.body;
+
+  // Build partial update (only for fields present)
+  const data = {};
+  if (typeof platform       !== 'undefined') data.platform       = String(platform || 'google').toLowerCase();
+  if (typeof defaultTone    !== 'undefined') data.defaultTone    = (defaultTone || null);
+  if (typeof defaultLength  !== 'undefined') data.defaultLength  = (defaultLength || null);
+  if (typeof headline       !== 'undefined') data.headline       = (headline || null);
+  if (typeof disclaimer     !== 'undefined') data.disclaimer     = (disclaimer || null);
+
+  const tx = [prisma.aiReviewConfig.update({ where: { businessId: biz.id }, data })];
+
+  // Google review link (and history) only if changed
+  if (typeof googleReviewUrl !== 'undefined') {
+    const newGoogleUrl = (googleReviewUrl || '').trim() || null;
+    if (newGoogleUrl !== (biz.googleReviewUrl || null)) {
+      tx.push(
+        prisma.redirectHistory.create({
+          data: {
+            businessId: biz.id,
+            platform: 'GOOGLE',
+            fromUrl: biz.googleReviewUrl || null,
+            toUrl: newGoogleUrl || '',
+          }
+        })
+      );
+      tx.push(
+        prisma.business.update({
+          where: { id: biz.id },
+          data: { googleReviewUrl: newGoogleUrl }
+        })
+      );
+    }
+  }
+
+  await prisma.$transaction(tx);
+  res.redirect(`/admin/ai/${biz.slug}`);
+});
+
+// Save "LLM (optional)" only
+app.post('/admin/ai/:slug/save-llm', basicAuth, async (req, res) => {
+  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+  if (!biz) return res.status(404).send('Business not found');
+
+  await ensureAiConfig(biz.id);
+
+  const {
     llmEnabled,
     llmProvider,
     llmModel,
     llmSystem,
     llmTemp,
-    googleReviewUrl, // editable from AI Settings page
   } = req.body;
 
-  const newGoogleUrl = (googleReviewUrl || '').trim() || null;
-
-  await ensureAiConfig(biz.id);
-
-  const tx = [];
-
-  // Update AI config
-  tx.push(
-    prisma.aiReviewConfig.update({
-      where: { businessId: biz.id },
-      data: {
-        platform: (platform || 'google').toLowerCase(),
-        defaultTone: nz(defaultTone),
-        defaultLength: nz(defaultLength),
-        headline: nz(headline),
-        disclaimer: nz(disclaimer),
-        llmEnabled: !!llmEnabled,
-        llmProvider: nz(llmProvider),
-        llmModel: nz(llmModel),
-        llmSystem: nz(llmSystem),
-        llmTemp: (typeof llmTemp !== 'undefined' && llmTemp !== null && String(llmTemp).trim() !== '') ? Number(llmTemp) : null,
-      }
-    })
-  );
-
-  // If Google link changed, log redirect history and update Business
-  if (newGoogleUrl !== (biz.googleReviewUrl || null)) {
-    tx.push(
-      prisma.redirectHistory.create({
-        data: {
-          businessId: biz.id,
-          platform: 'GOOGLE',
-          fromUrl: biz.googleReviewUrl || null,
-          toUrl: newGoogleUrl || '',
-        }
-      })
-    );
-    tx.push(
-      prisma.business.update({
-        where: { id: biz.id },
-        data: { googleReviewUrl: newGoogleUrl }
-      })
-    );
+  const data = {};
+  if (typeof llmEnabled !== 'undefined') data.llmEnabled = llmEnabled === '1' || llmEnabled === 'true';
+  if (typeof llmProvider !== 'undefined') data.llmProvider = llmProvider || null;
+  if (typeof llmModel    !== 'undefined') data.llmModel    = llmModel || null;
+  if (typeof llmSystem   !== 'undefined') data.llmSystem   = llmSystem || null;
+  if (typeof llmTemp     !== 'undefined') {
+    const num = String(llmTemp).trim() === '' ? null : Number(llmTemp);
+    data.llmTemp = (num === null || Number.isNaN(num)) ? null : num;
   }
 
-  await prisma.$transaction(tx);
+  await prisma.aiReviewConfig.update({ where: { businessId: biz.id }, data });
   res.redirect(`/admin/ai/${biz.slug}`);
 });
 
@@ -416,8 +445,19 @@ app.get('/ai-review/:slug', async (req, res) => {
 
   res.render('ai_review_form', {
     biz, platform, targetUrl, BASE_URL,
-    defaultTone: cfg?.defaultTone, defaultLength: cfg?.defaultLength,
-    headline: cfg?.headline, disclaimer: cfg?.disclaimer
+    // defaultTone: cfg?.defaultTone, defaultLength: cfg?.defaultLength,
+    // headline: cfg?.headline, disclaimer: cfg?.disclaimer
+    // poster / form copy
+   defaultTone:   cfg?.defaultTone || null,
+   defaultLength: cfg?.defaultLength || null,
+   headline:      cfg?.headline || null,
+   disclaimer:    cfg?.disclaimer || null,
+   // LLM passthrough from Settings tab (optional; use later)
+   llmEnabled:  !!cfg?.llmEnabled,
+   llmProvider:  cfg?.llmProvider || null,
+   llmModel:     cfg?.llmModel || null,
+   llmSystem:    cfg?.llmSystem || null,
+   llmTemp:      typeof cfg?.llmTemp === 'number' ? cfg.llmTemp : null
   });
 });
 

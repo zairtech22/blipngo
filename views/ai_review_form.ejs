@@ -13,7 +13,7 @@
   .muted{color:var(--muted);font-size:13px}
   .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px}
   label{display:block;font-weight:700;margin:8px 0 6px}
-  input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
+  input,textarea,select{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
   textarea{min-height:120px;resize:vertical}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   @media (max-width:640px){ .row{grid-template-columns:1fr} }
@@ -23,12 +23,17 @@
   .grid{display:grid;gap:10px}
   .footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
   .pill{display:inline-block;padding:6px 10px;border:1px solid #000;border-radius:999px;font-weight:700;margin-right:6px}
+  .flash{font-size:13px;margin-top:8px}
+  .flash.ok{color:#166534}
+  .flash.err{color:#991b1b}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Write a quick review</h1>
-  <div class="muted">for <strong><%= biz.name %></strong> — platform: <strong><%= platform %></strong></div>
+  <div class="muted">
+    for <strong><%= biz.name %></strong> — platform: <strong><%= platform %></strong>
+  </div>
 
   <% if (typeof headline !== 'undefined' && headline) { %>
     <div class="card" style="background:#0A0A0A;color:<%= biz.ctaColor || '#EDC400' %>;font-weight:800">
@@ -40,34 +45,19 @@
     <div class="row">
       <div>
         <label>Rating</label>
+        <!-- default 5 for first render -->
         <select id="rating">
-          <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          <option selected>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
         </select>
       </div>
       <div>
-        <label>Tone</label>
-        <select id="tone">
-          <option value="friendly"     <%= (typeof defaultTone!=='undefined' && defaultTone==='friendly') ? 'selected' : '' %>>Friendly</option>
-          <option value="professional" <%= (typeof defaultTone!=='undefined' && defaultTone==='professional') ? 'selected' : '' %>>Professional</option>
-          <option value="enthusiastic" <%= (typeof defaultTone!=='undefined' && defaultTone==='enthusiastic') ? 'selected' : '' %>>Enthusiastic</option>
-        </select>
+        <!-- spacer column to keep layout balanced -->
+        <div style="height:100%"></div>
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label>What did you get?</label>
-        <input id="order" placeholder="e.g., Jerk chicken over spicy rice"/>
-      </div>
-      <div>
-        <label>Length</label>
-        <select id="length">
-          <option value="short"  <%= (typeof defaultLength!=='undefined' && defaultLength==='short') ? 'selected' : '' %>>Short (~1–2 lines)</option>
-          <option value="medium" <%= (typeof defaultLength!=='undefined' && defaultLength==='medium') ? 'selected' : '' %>>Medium (~3–4 lines)</option>
-          <option value="long"   <%= (typeof defaultLength!=='undefined' && defaultLength==='long') ? 'selected' : '' %>>Long (~5–6 lines)</option>
-        </select>
-      </div>
-    </div>
+    <label>What did you get?</label>
+    <input id="order" placeholder="e.g., Jerk chicken over spicy rice"/>
 
     <label>Highlights (what you liked)</label>
     <input id="highlights" placeholder="e.g., juicy chicken, friendly staff, fast service"/>
@@ -79,6 +69,7 @@
       <div class="muted">Tip: keep it specific and sincere.</div>
       <button id="genBtn" class="btn primary">Generate review</button>
     </div>
+    <div id="flash" class="flash" aria-live="polite"></div>
   </div>
 
   <div id="resultCard" class="card" style="display:none">
@@ -92,7 +83,7 @@
       <% if (targetUrl) { %>
         <a class="btn" id="openPlatform" href="<%= targetUrl %>" target="_blank" rel="noopener">Open <%= platform %></a>
       <% } else { %>
-        <button class="btn" disabled>Platform link not set</button>
+        <button class="btn" id="openPlatform" disabled>Platform link not set</button>
       <% } %>
     </div>
     <% if (typeof disclaimer !== 'undefined' && disclaimer) { %>
@@ -106,46 +97,107 @@
 </div>
 
 <script>
-  const genBtn = document.getElementById('genBtn');
-  const resultCard = document.getElementById('resultCard');
-  const draftEl = document.getElementById('draft');
-  const copyBtn = document.getElementById('copyBtn');
+  // ---- constants from server ----
+  const GENERATE_URL   = '<%= BASE_URL %>/ai-review/<%= biz.slug %>/generate';
+  const HAS_TARGET     = <%= targetUrl ? 'true' : 'false' %>;
+  const DEFAULT_TONE   = '<%= typeof defaultTone!=="undefined" && defaultTone ? defaultTone : "friendly" %>';
+  const DEFAULT_LENGTH = '<%= typeof defaultLength!=="undefined" && defaultLength ? defaultLength : "short" %>';
 
-  genBtn.addEventListener('click', async () => {
+  // ---- elements ----
+  const genBtn     = document.getElementById('genBtn');
+  const resultCard = document.getElementById('resultCard');
+  const draftEl    = document.getElementById('draft');
+  const copyBtn    = document.getElementById('copyBtn');
+  const flashEl    = document.getElementById('flash');
+  const openBtn    = document.getElementById('openPlatform');
+
+  function setFlash(msg, ok){
+    if(!flashEl) return;
+    flashEl.textContent = msg || '';
+    flashEl.className = 'flash ' + (ok ? 'ok' : 'err');
+  }
+
+  async function generateDraft(extra){
+    const payload = {
+      rating:     document.getElementById('rating').value,
+      order:      document.getElementById('order').value.trim(),
+      highlights: document.getElementById('highlights').value.trim(),
+      tone:       DEFAULT_TONE,
+      length:     DEFAULT_LENGTH,
+      extras:     document.getElementById('extras').value.trim(),
+      ...(extra||{})
+    };
+
     genBtn.disabled = true;
+    setFlash('Generating…', true);
     try{
-      const payload = {
-        rating: document.getElementById('rating').value,
-        order: document.getElementById('order').value.trim(),
-        highlights: document.getElementById('highlights').value.trim(),
-        tone: document.getElementById('tone').value,
-        length: document.getElementById('length').value,
-        extras: document.getElementById('extras').value.trim()
-      };
-      const res = await fetch(window.location.pathname + '/generate', {
+      const res = await fetch(GENERATE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      if(!res.ok){
+        const txt = await res.text();
+        throw new Error('Server responded ' + res.status + ': ' + txt.slice(0,200));
+      }
+
       const data = await res.json();
       draftEl.value = data.draft || '';
       resultCard.style.display = 'block';
       draftEl.focus();
+      setFlash('Draft ready. Edit if you like, then copy & post!', true);
     }catch(e){
-      alert('Something went wrong generating the draft.');
+      console.error('Generate error:', e);
+      setFlash('Something went wrong generating the draft. ' + (e.message||e), false);
     }finally{
       genBtn.disabled = false;
     }
-  });
+  }
 
-  copyBtn.addEventListener('click', async () => {
+  // Copy helper for both buttons
+  async function copyDraft(btn){
     try {
-      await navigator.clipboard.writeText(draftEl.value);
-      copyBtn.textContent = 'Copied!';
-      setTimeout(() => copyBtn.textContent = 'Copy', 1100);
+      await navigator.clipboard.writeText(draftEl.value || '');
+      const old = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(()=> btn.textContent = old, 1100);
     } catch (e) {
       alert('Copy failed — select and copy manually.');
     }
+  }
+
+  genBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    generateDraft();
+  });
+
+  copyBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await copyDraft(copyBtn);
+  });
+
+  // Make "Open Google" also copy first, then open in a new tab
+  if(openBtn){
+    if(openBtn.tagName === 'A' && HAS_TARGET){
+      openBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await copyDraft(openBtn);
+        setTimeout(()=> window.open(openBtn.href, '_blank', 'noopener'), 120);
+      });
+    } else {
+      openBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        copyDraft(openBtn);
+      });
+    }
+  }
+
+  // ---- Auto-generate on first load (5-star baseline) ----
+  window.addEventListener('DOMContentLoaded', () => {
+    const ratingSel = document.getElementById('rating');
+    if(ratingSel) ratingSel.value = '5';
+    generateDraft({ rating: 5 });
   });
 </script>
 </body>
