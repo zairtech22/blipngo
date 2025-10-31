@@ -37,44 +37,159 @@
   </style>
 </head>
 <body>
+  <header>
+    <div class="h-left">
+      <h1><strong><%= biz.name %></strong> <span class="slug">/ <%= biz.slug %></span></h1>
+      <div class="hint">Edit in the same order the poster shows.</div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/p/<%= biz.slug %>" target="_blank">Public</a>
+      <a class="btn secondary" href="/">All</a>
+      <form method="post" action="/business/<%= biz.slug %>/delete" onsubmit="return confirm('Delete this business?')">
+        <button class="btn danger" type="submit">Delete</button>
+      </form>
+    </div>
+  </header>
 
-<header>
-  <div class="h-left">
-    <h1><strong><%= biz.name %></strong> <span class="slug">/ <%= biz.slug %></span></h1>
-    <div class="hint">Edit below to customize the poster.</div>
-  </div>
-  <div class="actions">
-    <a class="btn" href="/p/<%= biz.slug %>" target="_blank">Public</a>
-    <a class="btn" href="/ai-poster/<%= biz.slug %>/google" target="_blank">AI Poster</a>
-    <a class="btn" href="/admin/ai/<%= biz.slug %>">AI Settings</a>
-    <a class="btn secondary" href="/">All</a>
-    <form method="post" action="/business/<%= biz.slug %>/delete" onsubmit="return confirm('Are you sure you want to delete this business?')">
-      <button class="btn danger" type="submit">Delete</button>
-    </form>
-  </div>
-</header>
+  <main>
+    <section>
+      <form id="themeForm" method="post" action="/business/<%= biz.slug %>/theme">
+        <!-- Removed hidden publicSubtitle input -->
 
-<main>
-  <section>
-    <form id="themeForm" method="post" action="/business/<%= biz.slug %>/theme">
+        <div class="card">
+          <h3>1) Brand</h3>
+          <div class="row">
+            <div>
+              <label>Business Name</label>
+              <input name="name" type="text" value="<%= biz.name %>" />
+              <div class="hint">Shown as the big heading.</div>
+            </div>
+            <div>
+              <label>Tagline</label>
+              <input
+                name="publicSubtitle"
+                type="text"
+                value="<%= (biz.publicSubtitle ?? '') %>"
+                placeholder="From the streets of NYC"
+              />
+              <div class="hint">A small phrase below the name.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Logo URL</label>
+              <input name="logoUrl" type="url" placeholder="https://…" value="<%= biz.logoUrl || '' %>"/>
+              <div class="switch">
+                <input id="showLogo" name="showLogo" type="checkbox" <%= biz.showLogo ? 'checked' : '' %> />
+                <label for="showLogo" style="margin:0; font-weight:600">Show logo</label>
+              </div>
+            </div>
+            <div>
+              <label>Logo Background Color</label>
+              <input name="logoBgColor" type="color" value="<%= biz.logoBgColor || '#0A0A0A' %>" />
+              <div class="hint">Ensures logo is visible on any background.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Poster Background Color (hex)</label>
+              <input name="brandColor" type="text" value="<%= biz.brandColor || '#FFD21E' %>" />
+              <div class="brand-swatch" style="--brand:<%= biz.brandColor || '#FFD21E' %>"></div>
+              <div class="hint">Main color for poster and QR cards.</div>
+            </div>
+          </div>
+        </div>
 
-      <!-- 1) BRAND -->
-      <div class="card">
-        <h3>1) Brand Settings</h3>
-        <label>Business Name</label>
-        <input name="name" type="text" value="<%= biz.name %>" />
+        <div class="card">
+          <h3>2) [CTA] Call To Action </h3>
+          <div class="row">
+            <div>
+              <label>Headline (CTA) Text</label>
+              <input name="ctaText" type="text" value="<%= biz.ctaText || 'Every Scan Wins — Some Unlock a Golden Ticket 🎟️' %>" />
+            </div>
+            <div>
+              <label>CTA Text Color</label>
+              <input name="ctaColor" type="color" value="<%= biz.ctaColor || '#EDC400' %>" />
+              <div class="hint">Background is black by default.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>CTA Background Color</label>
+              <input name="ctaBgColor" type="color" value="<%= biz.ctaBgColor || '#0A0A0A' %>" />
+              <div class="hint">This is the background color for the headline.</div>
+            </div>
+          </div>
+          <label style="margin-top:10px">Instructions alignment</label>
+          <select name="ctaLabel">
+            <option value="left"   <%= (biz.ctaLabel||'left')==='left'   ? 'selected' : '' %>>Left</option>
+            <option value="center" <%= (biz.ctaLabel||'left')==='center' ? 'selected' : '' %>>Center</option>
+            <option value="right"  <%= (biz.ctaLabel||'left')==='right'  ? 'selected' : '' %>>Right</option>
+          </select>
+        </div>
 
-        <label>Tagline</label>
-        <input name="publicSubtitle" type="text" value="<%= biz.publicSubtitle || '' %>" placeholder="From the streets of NYC"/>
+        <div class="card">
+          <h3>3) Steps (1 per line)</h3>
+          <textarea name="steps" rows="6"><%= (biz.steps||[]).sort((a,b)=>a.order-b.order).map(s=>s.text).join('\n') %></textarea>
+          <div class="hint">Leave blank to use defaults.</div>
+        </div>
 
-        <label>Logo URL</label>
-        <input name="logoUrl" type="url" value="<%= biz.logoUrl || '' %>"/>
+        <div class="card">
+          <h3>4) Social + Reviews QR Boxes</h3>
+          <div class="row">
+            <div>
+              <label class="inline"><input type="hidden" name="enableTiktok" value="0"/><input type="checkbox" name="enableTiktok" value="1" <%= biz.tiktokUrl ? 'checked' : '' %> /> TikTok</label>
+              <input name="tiktokUrl" type="url" placeholder="https://www.tiktok.com/…" value="<%= biz.tiktokUrl || '' %>"/>
+            </div>
+            <div>
+              <label class="inline"><input type="hidden" name="enableInstagram" value="0"/><input type="checkbox" name="enableInstagram" value="1" <%= biz.instagramUrl ? 'checked' : '' %> /> Instagram</label>
+              <input name="instagramUrl" type="url" placeholder="https://www.instagram.com/…" value="<%= biz.instagramUrl || '' %>"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label class="inline"><input type="hidden" name="enableYoutube" value="0"/><input type="checkbox" name="enableYoutube" value="1" <%= biz.youtubeUrl ? 'checked' : '' %> /> YouTube Shorts</label>
+              <input name="youtubeUrl" type="url" placeholder="https://youtu.be/…" value="<%= biz.youtubeUrl || '' %>"/>
+            </div>
+            <div>
+              <!-- Google Reviews -->
+              <label class="inline"><input type="hidden" name="enableGoogle" value="0"/><input type="checkbox" name="enableGoogle" value="1" <%= biz.googleReviewUrl ? 'checked' : '' %> /> Google Reviews</label>
+              <input name="googleReviewUrl" type="url" placeholder="https://search.google.com/local/writereview?placeid=XXXXXXXXXXXX" value="<%= biz.googleReviewUrl || '' %>"/>
+              <div class="hint">Tip: use Google’s Place ID “Write a review” link for best UX.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>QR Layout</label>
+              <select name="qrLayout">
+                <option value="vertical"   <%= biz.qrLayout === 'vertical'   ? 'selected' : '' %>>3 across (default)</option>
+                <option value="horizontal" <%= biz.qrLayout === 'horizontal' ? 'selected' : '' %>>Horizontal strip</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-        <label>Logo Background Color</label>
-        <input name="logoBgColor" type="color" value="<%= biz.logoBgColor || '#FFD21E' %>"/>
+        <div class="card">
+          <h3>5) Footer (small print)</h3>
+          <input name="publicFooter" type="text" value="<%= biz.publicFooter || 'Powered By BlipNGo' %>" />
+        </div>
 
-        <label>Poster Background Color</label>
-        <input name="brandColor" type="color" value="<%= biz.brandColor || '#FFD21E' %>"/>
+        <div class="savebar">
+          <button class="btn" type="submit">Save changes</button>
+          <a class="btn secondary" href="/p/<%= biz.slug %>" target="_blank">Public Poster</a>
+        </div>
+      </form>
+    </section>
+
+    <aside class="preview">
+      <div class="preview-head">
+        <div><strong>Live Preview</strong></div>
+        <div class="preview-controls">
+          <button class="chip" id="a4Btn">A4</button>
+          <button class="chip" id="letterBtn">Letter</button>
+          <button class="chip" id="refreshBtn">Refresh</button>
+          <button class="chip" id="printBtn">Print</button>
+        </div>
       </div>
 
       <!-- 2) CTA -->

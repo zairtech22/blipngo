@@ -170,29 +170,7 @@
       const closeBtn = document.getElementById('closeRegister');
       const panel   = document.getElementById('registerPanel');
 
-      function openPanel(){
-        panel.classList.remove('hidden');
-        panel.setAttribute('aria-hidden','false');
-        openBtn.setAttribute('aria-expanded','true');
-        // focus first input
-        const first = panel.querySelector('input,select,textarea');
-        if (first) first.focus();
-        // scroll to panel
-        panel.scrollIntoView({behavior:'smooth',block:'start'});
-      }
-      function closePanel(){
-        panel.classList.add('hidden');
-        panel.setAttribute('aria-hidden','true');
-        openBtn.setAttribute('aria-expanded','false');
-        openBtn.focus();
-      }
-
-      openBtn.addEventListener('click', (e)=>{ e.preventDefault(); openPanel(); });
-      if (closeBtn) closeBtn.addEventListener('click', (e)=>{ e.preventDefault(); closePanel(); });
-
-      // Optional: open via hash #register
-      if (location.hash === '#register') openPanel();
-    })();
-  </script>
-</body>
+      <div class="footer">© <script>document.write(new Date().getFullYear())</script> BlipNGo</div>
+    </div>
+  </body>
 </html>
