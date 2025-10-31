@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title><%= biz.name %> — AI Review Settings</title>
+<title><%= biz.name %> — AI Review Admin</title>
 <style>
   :root{
     --ink:#0A0A0A;
@@ -19,11 +19,8 @@
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
-    line-height:1.5;
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.5;
   }
   header{
     display:flex;justify-content:space-between;align-items:center;
@@ -40,22 +37,27 @@
   .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
   .btn.secondary{background:#fff;border:1px solid var(--border);color:var(--ink)}
   .btn.secondary:hover{background:#f8fafc}
-  main{
-    max-width:1400px;margin:0 auto;padding:24px;display:grid;gap:24px
+
+  main{max-width:1400px;margin:0 auto;padding:24px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab-btn{
+    border:1px solid var(--border);background:#fff;color:var(--ink);
+    padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer
   }
-  /* Layout A: editor left (520px), preview right */
-  .layout{display:grid;grid-template-columns:520px 1fr;gap:20px;align-items:start}
-  @media (max-width:1100px){ .layout{grid-template-columns:1fr} }
+  .tab-btn.active{background:#000;color:#fff;border-color:#000}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
 
   .card{
     background:#fff;border:1px solid var(--border);border-radius:12px;
     padding:20px;box-shadow:var(--shadow);transition:box-shadow .2s ease;
     margin-bottom:14px;
   }
-  .card h3{margin:0 0 16px;font-size:18px;letter-spacing:-0.01em;color:var(--ink);font-weight:600}
-  .card.small{padding:16px}
   .lead{color:var(--muted);font-size:14px;margin-bottom:16px;line-height:1.5}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:900px){ .row{grid-template-columns:1fr} }
   label{display:block;font-weight:600;margin:12px 0 8px;color:var(--ink)}
   input[type="text"],input[type="url"],textarea,select,input[type="number"]{
     width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font:inherit;transition:all .2s ease
@@ -65,18 +67,29 @@
   }
   textarea{resize:vertical;min-height:120px}
   .savebar{
-    position:sticky;bottom:24px;background:#ffffffee;border:1px solid var(--border);
-    border-radius:12px;padding:16px;display:flex;justify-content:flex-end;gap:12px;
-    backdrop-filter:saturate(1.1) blur(4px);box-shadow:var(--shadow)
+    background:#ffffffee;border:1px solid var(--border);border-radius:12px;
+    padding:12px;display:flex;justify-content:flex-end;gap:12px;box-shadow:var(--shadow)
   }
-  /* Right preview column */
-  .preview{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
-  .preview-head{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border);background:#fff}
+
+  /* Poster Editor split */
+  .editor-split{display:grid;grid-template-columns:520px 1fr;gap:20px}
+  @media (max-width:1100px){ .editor-split{grid-template-columns:1fr} }
+
+  /* Preview */
+  .preview{
+    background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    display:grid;grid-template-rows:auto 1fr
+  }
+  .preview-head{
+    display:flex;gap:8px;align-items:center;justify-content:space-between;
+    padding:10px 12px;border-bottom:1px solid var(--border);background:#fff
+  }
+  .preview-actions{display:flex;gap:8px;flex-wrap:wrap}
   .preview-iframe{width:100%;height:calc(100vh - 170px);border:0;background:#f1f5f9}
-  .qrbox{border:1px dashed var(--border);border-radius:10px;background:#fff;display:grid;place-items:center;padding:20px;box-shadow:var(--shadow)}
-  .qr-actions{display:flex;gap:12px;justify-content:center;padding-bottom:8px;border-bottom:1px solid var(--border)}
-  .link-actions{display:flex;flex-direction:column;gap:8px}
-  .link-group{display:flex;gap:8px;justify-content:center}
+
+  /* Form Editor */
+  .form-toolbar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:10px}
+  .form-iframe{width:100%;height:calc(100vh - 220px);border:1px solid var(--border);border-radius:12px;background:#fff}
 </style>
 </head>
 <body>
@@ -105,13 +118,13 @@
   const DEF_WELCOME = "Welcome — we'll help you craft a friendly, genuine review in seconds ✨";
   const DEF_QRTIP   = "Point your camera at the QR to start — we'll make it quick and easy.";
   const DEF_QR_DESC = "Open the assistant to get a short draft you can tweak, copy, and post in moments.";
-  const DEF_HEADLINE = "We'll draft it for you — edit & paste";
+  const DEF_HEADLINE= "We'll draft it for you — edit & paste";
 %>
 
 <header>
   <div>
     <h1><strong><%= biz.name %></strong> <span class="hint">/ AI Reviews</span></h1>
-    <div class="hint">Manage the single-platform AI poster & settings.</div>
+    <div class="hint">Tabbed admin: Settings, Poster Editor, Form Editor.</div>
   </div>
   <div>
     <a class="btn secondary" href="/business/<%= biz.slug %>">Back</a>
@@ -120,105 +133,125 @@
 </header>
 
 <main>
-  <div class="layout">
-    <!-- Left: Editor -->
-    <section>
-      <!-- SETTINGS (save to /save) -->
-      <form id="settingsForm" method="post" action="/admin/ai/<%= biz.slug %>/save">
-        <div class="card">
-          <h3>Poster Settings</h3>
-          <div class="row">
-            <div>
-              <label>Platform</label>
-              <select name="platform">
-                <option value="google" <%= (_platform==='google'?'selected':'') %>>Google</option>
-              </select>
-              <div class="hint">Single platform per AI poster.</div>
-            </div>
-            <div>
-              <label>Google Review Link</label>
-              <input name="googleReviewUrl" type="url" value="<%= _targetUrl || '' %>" placeholder="https://search.google.com/local/writereview?placeid=XXXX"/>
-              <div class="hint">Paste the direct 'Write a review' URL.</div>
-            </div>
-          </div>
+  <!-- TAB HEADERS -->
+  <div class="tabs" role="tablist" aria-label="AI Admin Tabs">
+    <button class="tab-btn active" data-tab="settings" role="tab" aria-selected="true" aria-controls="panel-settings">Settings</button>
+    <button class="tab-btn" data-tab="poster" role="tab" aria-selected="false" aria-controls="panel-poster">Poster Editor</button>
+    <button class="tab-btn" data-tab="form" role="tab" aria-selected="false" aria-controls="panel-form">Form Editor</button>
+  </div>
 
-          <div class="row">
-            <div>
-              <label>Disclaimer</label>
-              <input name="disclaimer" type="text" value="<%= _disclaimer || '' %>" placeholder="Reviews are optional and appreciated."/>
-            </div>
-            <div></div>
-          </div>
+  <!-- TAB: SETTINGS -->
+  <section id="panel-settings" class="tab-panel active" role="tabpanel" aria-labelledby="tab-settings">
+    <!-- Poster Settings (own save) -->
+    <form id="settingsForm" method="post" action="/admin/ai/<%= biz.slug %>/save" class="card" style="margin:0 0 16px">
+      <h3 style="margin:0 0 12px">Poster Settings</h3>
+      <div class="row">
+        <div>
+          <label>Platform</label>
+          <select name="platform">
+            <option value="google" <%= (_platform==='google'?'selected':'') %>>Google</option>
+          </select>
+          <div class="hint">Single platform per AI poster.</div>
+        </div>
+        <div>
+          <label>Google Review Link</label>
+          <input name="googleReviewUrl" type="url" value="<%= _targetUrl || '' %>" placeholder="https://search.google.com/local/writereview?placeid=XXXX"/>
+          <div class="hint">Paste the direct 'Write a review' URL.</div>
+        </div>
+      </div>
 
-          <div class="row">
-            <div>
-              <label>Default Tone</label>
-              <select name="defaultTone">
-                <option value="">(none)</option>
-                <option value="friendly"     <%= _defaultTone==='friendly'?'selected':'' %>>Friendly</option>
-                <option value="professional" <%= _defaultTone==='professional'?'selected':'' %>>Professional</option>
-                <option value="enthusiastic" <%= _defaultTone==='enthusiastic'?'selected':'' %>>Enthusiastic</option>
-              </select>
-            </div>
-            <div>
-              <label>Default Length</label>
-              <select name="defaultLength">
-                <option value="">(none)</option>
-                <option value="short"  <%= _defaultLength==='short'?'selected':'' %>>Short</option>
-                <option value="medium" <%= _defaultLength==='medium'?'selected':'' %>>Medium</option>
-                <option value="long"   <%= _defaultLength==='long'?'selected':'' %>>Long</option>
-              </select>
-            </div>
+      <div class="row">
+        <div>
+          <label>Disclaimer</label>
+          <input name="disclaimer" type="text" value="<%= _disclaimer || '' %>" placeholder="Reviews are optional and appreciated."/>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Default Tone</label>
+          <select name="defaultTone">
+            <option value="">(none)</option>
+            <option value="friendly"     <%= _defaultTone==='friendly'?'selected':'' %>>Friendly</option>
+            <option value="professional" <%= _defaultTone==='professional'?'selected':'' %>>Professional</option>
+            <option value="enthusiastic" <%= _defaultTone==='enthusiastic'?'selected':'' %>>Enthusiastic</option>
+          </select>
+        </div>
+        <div>
+          <label>Default Length</label>
+          <select name="defaultLength">
+            <option value="">(none)</option>
+            <option value="short"  <%= _defaultLength==='short'?'selected':'' %>>Short</option>
+            <option value="medium" <%= _defaultLength==='medium'?'selected':'' %>>Medium</option>
+            <option value="long"   <%= _defaultLength==='long'?'selected':'' %>>Long</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="savebar" style="margin-top:12px">
+        <button class="btn" type="submit">Save Poster Settings</button>
+      </div>
+    </form>
+
+    <!-- LLM (optional) (own save) -->
+    <form id="llmForm" method="post" action="/admin/ai/<%= biz.slug %>/save" class="card" style="margin:0">
+      <h3 style="margin:0 0 12px">LLM (optional)</h3>
+      <div class="lead">Use an LLM to draft suggested reviews automatically.</div>
+
+      <div class="row" style="align-items:center">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="switch <%= _llmEnabled ? 'on' : '' %>" id="llmSwitch"
+               style="width:44px;height:24px;background:<%= _llmEnabled ? '#0A0A0A' : '#e6e7eb' %>;border-radius:999px;position:relative;display:inline-block;cursor:pointer">
+            <div class="knob" id="llmKnob" style="position:absolute;top:3px;left:<%= _llmEnabled ? '23px' : '3px' %>;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .18s"></div>
+          </div>
+          <strong>Enable LLM</strong>
+        </div>
+        <div></div>
+      </div>
+      <input type="hidden" name="llmEnabled" value="<%= _llmEnabled ? '1' : '0' %>" id="llmEnabledInput" />
+
+      <div id="llmRows" style="<%= _llmEnabled ? '' : 'opacity:.45;pointer-events:none' %>">
+        <div class="row">
+          <div>
+            <label>Provider</label>
+            <input name="llmProvider" type="text" value="<%= _llmProvider || '' %>" placeholder="openai"/>
+          </div>
+          <div>
+            <label>Model</label>
+            <input name="llmModel" type="text" value="<%= _llmModel || '' %>" placeholder="gpt-4o-mini"/>
           </div>
         </div>
 
-        <div class="card">
-          <h3>LLM (optional)</h3>
-          <div class="lead">Use an LLM to draft suggested reviews automatically.</div>
-          <div class="toggle" style="display:inline-flex;align-items:center;gap:10px;margin:12px 0">
-            <div class="switch <%= _llmEnabled ? 'on' : '' %>" id="llmSwitch" style="width:44px;height:24px;background:#e6e7eb;border-radius:999px;position:relative;display:inline-block;cursor:pointer">
-              <div class="knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .18s"></div>
-            </div>
-            <label style="margin:0">Enable LLM</label>
+        <div class="row">
+          <div>
+            <label>Temperature</label>
+            <input name="llmTemp" type="number" step="0.1" min="0" max="1" value="<%= (typeof _llmTemp==='number' || (typeof _llmTemp==='string' && _llmTemp.length)) ? _llmTemp : '' %>"/>
           </div>
-          <input type="hidden" name="llmEnabled" value="<%= _llmEnabled ? '1' : '0' %>" id="llmEnabledInput" />
-          <div class="row" id="llmRows" style="<%= _llmEnabled ? '' : 'opacity:.45;pointer-events:none' %>">
-            <div>
-              <label>Provider</label>
-              <input name="llmProvider" type="text" value="<%= _llmProvider || '' %>" placeholder="openai"/>
-            </div>
-            <div>
-              <label>Model</label>
-              <input name="llmModel" type="text" value="<%= _llmModel || '' %>" placeholder="gpt-4o-mini"/>
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label>Temperature</label>
-              <input name="llmTemp" type="number" step="0.1" min="0" max="1" value="<%= (typeof _llmTemp==='number' || (typeof _llmTemp==='string' && _llmTemp.length)) ? _llmTemp : '' %>"/>
-            </div>
-            <div></div>
-          </div>
-          <label>System Prompt</label>
-          <textarea name="llmSystem" placeholder="You are a helpful assistant that drafts sincere customer feedback…"><%= _llmSystem || '' %></textarea>
+          <div></div>
         </div>
 
-        <div class="savebar">
-          <a class="btn secondary" href="/business/<%= biz.slug %>">Cancel</a>
-          <button class="btn" type="submit">Save Settings</button>
-        </div>
-      </form>
+        <label>System Prompt</label>
+        <textarea name="llmSystem" placeholder="You are a helpful assistant that drafts sincere customer feedback…"><%= _llmSystem || '' %></textarea>
+      </div>
 
-      <!-- POSTER COPY (save to /poster) -->
-      <form id="posterCopyForm" method="post" action="/admin/ai/<%= biz.slug %>/poster" class="card">
+      <div class="savebar" style="margin-top:12px">
+        <button class="btn" type="submit">Save LLM Settings</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- TAB: POSTER EDITOR -->
+  <section id="panel-poster" class="tab-panel" role="tabpanel" aria-labelledby="tab-poster">
+    <div class="editor-split">
+      <!-- Poster Copy -->
+      <form id="posterCopyForm" method="post" action="/admin/ai/<%= biz.slug %>/poster" class="card" style="margin:0">
         <h3>Poster Copy (public-facing)</h3>
-        <label>Poster Headline</label>
-        <input name="headline" type="text"
-              value="<%= _headline || DEF_HEADLINE %>"
-              placeholder="We'll draft it for you — edit & paste"/>
-
         <label>Welcome Message</label>
         <input name="welcome" type="text" value="<%= _welcome || DEF_WELCOME %>" placeholder="Friendly welcome text"/>
+        
+        <label>Poster Headline</label>
+        <input name="headline" type="text" value="<%= _headline || DEF_HEADLINE %>" placeholder="We'll draft it for you — edit & paste"/>
 
         <div class="row">
           <div>
@@ -241,81 +274,112 @@
           <button class="btn" type="submit">Save Poster Copy</button>
         </div>
       </form>
-    </section>
 
-    <!-- Right: Live Preview + QR/Links -->
-    <aside>
-      <div class="preview">
-        <div class="preview-head">
-          <strong>Live Poster Preview</strong>
-          <a class="btn secondary" id="openPosterBtn" target="_blank" href="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1">Open</a>
-        </div>
-        <iframe id="posterFrame" class="preview-iframe" src="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1&ts=<%= Date.now() %>"></iframe>
-      </div>
-
-      <div class="card small" style="margin-top:14px">
-        <h3>QR Preview</h3>
-        <div class="qrbox" style="margin:12px 0">
-          <img id="qrImg" src="/qr/ai/<%= biz.slug %>/<%= _platform %>.png" width="220" alt="QR Code Preview"/>
-        </div>
-        <div class="qr-actions">
-          <button id="refreshQr" class="btn secondary" type="button">Refresh</button>
-          <button id="downloadQr" class="btn secondary" type="button">Download</button>
-        </div>
-
-        <div class="link-actions" style="margin-top:12px">
-          <div class="link-group">
-            <input type="hidden" id="posterUrl" value="<%= BASE_URL %>/ai-poster/<%= biz.slug %>/<%= _platform %>" />
-            <a class="btn secondary" target="_blank" href="<%= BASE_URL %>/ai-poster/<%= biz.slug %>/<%= _platform %>">Open Poster</a>
-            <button id="copyPoster" class="btn secondary" type="button">Copy Poster URL</button>
+      <!-- Live Poster Preview -->
+      <aside>
+        <div class="preview">
+          <div class="preview-head">
+            <div style="display:flex;align-items:center;gap:8px">
+              <strong>Live Poster Preview</strong>
+            </div>
+            <div class="preview-actions">
+              <a class="btn secondary" id="openPosterBtn" target="_blank" href="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1">Open Poster</a>
+              <button class="btn secondary" id="refreshPosterBtn" type="button">Refresh</button>
+              <button class="btn secondary" id="downloadQrBtn" type="button">Download QR</button>
+              <button class="btn secondary" id="copyPosterBtn" type="button">Copy Poster URL</button>
+            </div>
           </div>
-          <div class="link-group">
-            <input type="hidden" id="formUrl" value="<%= BASE_URL %>/ai-review/<%= biz.slug %>?platform=<%= _platform %>" />
-            <a class="btn secondary" target="_blank" href="<%= BASE_URL %>/ai-review/<%= biz.slug %>?platform=<%= _platform %>">Open Form</a>
-            <button id="copyForm" class="btn secondary" type="button">Copy Form URL</button>
-          </div>
+          <iframe id="posterFrame" class="preview-iframe" src="/ai-poster/<%= biz.slug %>/<%= _platform %>?embed=1&ts=<%= Date.now() %>"></iframe>
         </div>
-      </div>
+      </aside>
+    </div>
+  </section>
 
-      <div class="card small">
-        <h3>Quick Tips</h3>
-        <ol class="hint" style="margin:8px 0 0 18px">
-          <li>Scan the QR to open the review helper</li>
-          <li>Pick a tone & length, then edit the draft</li>
-          <li>Copy & paste to the review page — thank you!</li>
-        </ol>
+  <!-- TAB: FORM EDITOR -->
+  <section id="panel-form" class="tab-panel" role="tabpanel" aria-labelledby="tab-form">
+    <div class="card" style="margin-bottom:14px">
+      <div class="row">
+        <div>
+          <label>Platform</label>
+          <!-- Shadow platform control here mirrors Settings selection -->
+          <select id="platformMirror">
+            <option value="google" <%= (_platform==='google'?'selected':'') %>>Google</option>
+          </select>
+          <div class="hint">Form and URLs below reflect the selected platform.</div>
+        </div>
+        <div></div>
       </div>
-    </aside>
-  </div>
+    </div>
+
+    <div class="form-toolbar">
+      <a class="btn secondary" id="openFormBtn2" target="_blank" href="/ai-review/<%= biz.slug %>?platform=<%= _platform %>">Open Form</a>
+      <button class="btn secondary" id="refreshFormBtn" type="button">Refresh</button>
+      <button class="btn secondary" id="copyFormBtn2" type="button">Copy Form URL</button>
+    </div>
+    <iframe id="formFrame" class="form-iframe" src="/ai-review/<%= biz.slug %>?platform=<%= _platform %>&embed=1"></iframe>
+  </section>
 </main>
 
 <script>
 (function(){
   try{
-    var plat = document.querySelector('select[name="platform"]');
-    var settingsForm = document.getElementById('settingsForm');
-    var posterCopyForm = document.getElementById('posterCopyForm');
-    var frame = document.getElementById('posterFrame');
-    var openPosterBtn = document.getElementById('openPosterBtn');
+    /* ---------- Tab wiring ---------- */
+    var tabs = document.querySelectorAll('.tab-btn');
+    var panels = {
+      settings: document.getElementById('panel-settings'),
+      poster:   document.getElementById('panel-poster'),
+      form:     document.getElementById('panel-form')
+    };
+    function activateTab(name){
+      tabs.forEach(function(b){
+        var isActive = b.dataset.tab === name;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      Object.keys(panels).forEach(function(k){
+        panels[k].classList.toggle('active', k===name);
+      });
+    }
+    tabs.forEach(function(b){
+      b.addEventListener('click', function(){
+        activateTab(b.dataset.tab);
+      });
+    });
 
-    var posterUrl = document.getElementById('posterUrl');
-    var formUrl   = document.getElementById('formUrl');
-    var copyPoster= document.getElementById('copyPoster');
-    var copyForm  = document.getElementById('copyForm');
-    var qrImg     = document.getElementById('qrImg');
-    var refreshBtn= document.getElementById('refreshQr');
-    var downloadQr= document.getElementById('downloadQr');
+    /* ---------- Elements shared ---------- */
+    var settingsForm   = document.getElementById('settingsForm');
+    var llmForm        = document.getElementById('llmForm');
+    var posterCopyForm = document.getElementById('posterCopyForm');
+
+    // Platform selects
+    var platformSelect = settingsForm ? settingsForm.querySelector('select[name="platform"]') : null;
+    var platformMirror = document.getElementById('platformMirror');
 
     var bizSlug = '<%= biz.slug %>';
 
+    /* ---------- Preview (Poster Editor) ---------- */
+    var frame            = document.getElementById('posterFrame');
+    var openPosterBtn    = document.getElementById('openPosterBtn');
+    var refreshPosterBtn = document.getElementById('refreshPosterBtn');
+    var downloadQrBtn    = document.getElementById('downloadQrBtn');
+    var copyPosterBtn    = document.getElementById('copyPosterBtn');
+    var openFormBtn      = document.getElementById('openFormBtn');
+    var copyFormBtn      = document.getElementById('copyFormBtn');
+
+    function currentPlatform(){
+      if(platformSelect) return platformSelect.value;
+      if(platformMirror) return platformMirror.value;
+      return '<%= _platform %>';
+    }
+
     function buildPreviewUrl(){
-      var base = '/ai-poster/' + bizSlug + '/' + (plat ? plat.value : '<%= _platform %>');
+      var base = '/ai-poster/' + bizSlug + '/' + currentPlatform();
       var url = new URL(base, window.location.origin);
-      // collect overrides from both forms
+
       if(settingsForm){
         var fd1 = new FormData(settingsForm);
         fd1.forEach(function(v,k){
-          if(k==='platform') return; // already in path
+          if(k==='platform') return;
           var val = (v==null) ? '' : String(v).trim();
           if(val) url.searchParams.set(k, val);
         });
@@ -332,38 +396,68 @@
       return url.toString();
     }
 
+    function currentPosterUrlNoTs(){
+      var u = new URL(buildPreviewUrl(), window.location.origin);
+      u.searchParams.delete('ts');
+      return u.toString();
+    }
+
+    function currentFormUrl(){
+      return '/ai-review/' + bizSlug + '?platform=' + encodeURIComponent(currentPlatform());
+    }
+
     function refreshPreview(){
-      if(!frame) return;
-      frame.src = buildPreviewUrl();
-      if(openPosterBtn){
-        try{
-          var u = new URL(frame.src);
-          u.searchParams.delete('ts');
-          openPosterBtn.href = u.toString();
-        }catch(e){}
+      if(frame) frame.src = buildPreviewUrl();
+      if(openPosterBtn) try{ openPosterBtn.href = currentPosterUrlNoTs(); }catch(e){}
+      if(openFormBtn)   try{ openFormBtn.href   = currentFormUrl(); }catch(e){}
+      // Also sync Form tab controls
+      syncFormTabUrls();
+    }
+
+    async function copyToClipboard(btn, text, label){
+      try{
+        await navigator.clipboard.writeText(text);
+        var old = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function(){ btn.textContent = label; }, 900);
+      }catch(e){
+        alert('Copy failed — copy manually.');
       }
     }
 
-    function updateQr(){
-      if(!qrImg || !plat) return;
-      var p = plat.value;
-      qrImg.src = '/qr/ai/' + bizSlug + '/' + p + '.png?ts=' + Date.now();
-      if(posterUrl) posterUrl.value = '<%= BASE_URL %>/ai-poster/' + bizSlug + '/' + p;
-      if(formUrl)   formUrl.value   = '<%= BASE_URL %>/ai-review/' + bizSlug + '?platform=' + p;
+    async function downloadQr(){
+      try{
+        var p = currentPlatform();
+        var qrUrl = '/qr/ai/' + bizSlug + '/' + p + '.png?ts=' + Date.now();
+        var response = await fetch(qrUrl);
+        var blob = await response.blob();
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = bizSlug + '-' + p + '-qr.png';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }catch(err){
+        console.error('Failed to download QR code:', err);
+        alert('Failed to download QR code. Please try again.');
+      }
     }
 
+    // Debounced live update on any input in settings or poster copy
     var debounce;
     function onAnyInput(){
       clearTimeout(debounce);
       debounce = setTimeout(refreshPreview, 140);
     }
-
-    if(settingsForm) settingsForm.addEventListener('input', onAnyInput);
-    if(posterCopyForm) posterCopyForm.addEventListener('input', onAnyInput);
+    if(settingsForm)    settingsForm.addEventListener('input', onAnyInput);
+    if(posterCopyForm)  posterCopyForm.addEventListener('input', onAnyInput);
 
     if(settingsForm){
       settingsForm.addEventListener('submit', function(){
-        setTimeout(function(){ refreshPreview(); updateQr(); }, 350);
+        setTimeout(function(){ refreshPreview(); }, 350);
       });
     }
     if(posterCopyForm){
@@ -372,80 +466,80 @@
       });
     }
 
-    if(plat){
-      plat.addEventListener('change', function(){
-        refreshPreview();
-        updateQr();
+    if(refreshPosterBtn) refreshPosterBtn.addEventListener('click', refreshPreview);
+    if(copyPosterBtn)    copyPosterBtn.addEventListener('click', function(){ copyToClipboard(copyPosterBtn, currentPosterUrlNoTs(), 'Copy Poster URL'); });
+    if(copyFormBtn)      copyFormBtn.addEventListener('click', function(){ copyToClipboard(copyFormBtn, currentFormUrl(), 'Copy Form URL'); });
+    if(downloadQrBtn)    downloadQrBtn.addEventListener('click', downloadQr);
+
+    /* ---------- LLM toggle (Settings tab) ---------- */
+    var llmSwitch       = document.getElementById('llmSwitch');
+    var llmKnob         = document.getElementById('llmKnob');
+    var llmEnabledInput = document.getElementById('llmEnabledInput');
+    var llmRows         = document.getElementById('llmRows');
+
+    function setLlm(enabled){
+      if(!llmSwitch || !llmEnabledInput || !llmRows) return;
+      llmEnabledInput.value = enabled ? '1' : '0';
+      llmSwitch.style.background = enabled ? '#0A0A0A' : '#e6e7eb';
+      if(llmKnob) llmKnob.style.left = enabled ? '23px' : '3px';
+      llmRows.style.opacity = enabled ? '1' : '.45';
+      llmRows.style.pointerEvents = enabled ? 'auto' : 'none';
+    }
+    if(llmSwitch){
+      llmSwitch.addEventListener('click', function(){
+        setLlm(llmEnabledInput.value !== '1');
       });
     }
 
-    async function copy(btn, text){
-      try{
-        await navigator.clipboard.writeText(text);
-        var old = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(function(){ btn.textContent = old; }, 900);
-      }catch(e){
-        alert('Copy failed — copy manually.');
+    /* ---------- Form Editor tab ---------- */
+    var formFrame     = document.getElementById('formFrame');
+    var openFormBtn2  = document.getElementById('openFormBtn2');
+    var copyFormBtn2  = document.getElementById('copyFormBtn2');
+    var refreshFormBtn= document.getElementById('refreshFormBtn');
+
+    function syncFormTabUrls(){
+      var url = currentFormUrl();
+      if(openFormBtn2) openFormBtn2.href = url;
+      if(formFrame){
+        var u = new URL(url, window.location.origin);
+        u.searchParams.set('embed','1');
+        formFrame.src = u.toString();
       }
     }
-    if(copyPoster && posterUrl) copyPoster.addEventListener('click', function(){ copy(copyPoster, posterUrl.value); });
-    if(copyForm && formUrl)     copyForm.addEventListener('click',   function(){ copy(copyForm,   formUrl.value); });
 
-    if(downloadQr && qrImg){
-      downloadQr.addEventListener('click', async function(){
-        try{
-          var response = await fetch(qrImg.src);
-          var blob = await response.blob();
-          var url = window.URL.createObjectURL(blob);
-          var a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = 'qr-code.png';
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        }catch(err){
-          console.error('Failed to download QR code:', err);
-          alert('Failed to download QR code. Please try again.');
+    if(refreshFormBtn) refreshFormBtn.addEventListener('click', syncFormTabUrls);
+    if(copyFormBtn2)   copyFormBtn2.addEventListener('click', function(){ copyToClipboard(copyFormBtn2, currentFormUrl(), 'Copy Form URL'); });
+
+    // Platform mirroring between Settings and Form tabs
+    function onPlatformChange(){
+      // Keep mirror/selects in sync both ways
+      if(platformMirror && platformMirror.value !== currentPlatform()){
+        platformMirror.value = currentPlatform();
+      }
+      refreshPreview();
+    }
+    if(platformSelect){
+      platformSelect.addEventListener('change', onPlatformChange);
+    }
+    if(platformMirror){
+      platformMirror.addEventListener('change', function(){
+        if(platformSelect && platformSelect.value !== platformMirror.value){
+          platformSelect.value = platformMirror.value;
+          // trigger change to write to model via preview only; saving remains explicit
+          var evt = new Event('change', { bubbles:true });
+          platformSelect.dispatchEvent(evt);
+        }else{
+          refreshPreview();
         }
       });
     }
 
-    if(refreshBtn && qrImg){
-      refreshBtn.addEventListener('click', function(){ updateQr(); });
-    }
-
-    // LLM toggle
-    var llmSwitch = document.getElementById('llmSwitch');
-    var llmEnabledInput = document.getElementById('llmEnabledInput');
-    var llmRows = document.getElementById('llmRows');
-    function setLlm(enabled){
-      if(!llmSwitch || !llmEnabledInput || !llmRows) return;
-      if(enabled){
-        llmSwitch.classList.add('on'); llmEnabledInput.value='1';
-        llmRows.style.opacity='1'; llmRows.style.pointerEvents='auto';
-        llmSwitch.style.background = '#0A0A0A';
-        if(llmSwitch.firstElementChild){ llmSwitch.firstElementChild.style.left = '23px'; }
-      }else{
-        llmSwitch.classList.remove('on'); llmEnabledInput.value='0';
-        llmRows.style.opacity='.45'; llmRows.style.pointerEvents='none';
-        llmSwitch.style.background = '#e6e7eb';
-        if(llmSwitch.firstElementChild){ llmSwitch.firstElementChild.style.left = '3px'; }
-      }
-    }
-    if(llmSwitch){
-      setLlm(<%= _llmEnabled ? 'true' : 'false' %>);
-      llmSwitch.addEventListener('click', function(){
-        var on = llmEnabledInput.value!=='1';
-        setLlm(on);
-      });
-    }
-
-    // Initial
+    // Initial hydration
+    activateTab('settings'); // default tab
     refreshPreview();
-    updateQr();
+    syncFormTabUrls();
+    // Initialize LLM state to current
+    setLlm(<%= _llmEnabled ? 'true' : 'false' %>);
   }catch(err){
     console.error('AI admin init error', err);
   }
